@@ -6,6 +6,7 @@
 // so we expect to get called on the same thread always.
 
 #define MAX_NODE_RESULTS 1000
+#define MAX_SCM_BUFFER_SIZE 10000
 
 enum Language {
     NONE,
@@ -13,12 +14,14 @@ enum Language {
 };
 
 typedef struct Context {
-    enum Language current;
+    enum Language language;
     const TSLanguage* tsls[1];
-	const char* scmpath[1];
-	const char* scm[1];
-	const uint32_t* scm_lengths[1];
     uint32_t tsls_length;
+    const char* scmpath[1];
+    uint32_t scmpath_length;
+    const char* scm[1];
+    uint32_t scm_length; // number of entries in scm array
+    uint32_t scm_sizes[1]; // the lengths of each pointer in scm array
     TSParser* parser;
     TSTree* tree;
 } Context;
@@ -59,5 +62,8 @@ __declspec(dllexport) bool get_syntax_cb(Context* ctx, uint32_t start_row, uint3
 __declspec(dllexport) void free_syntax(NodeList* node_list);
 __declspec(dllexport) void free_context(Context* ctx);
 __declspec(dllexport) void print_syntax_tree(Context* ctx);
+
 void get_syntax_loop(TSNode node, NodeList* node_list);
 void get_syntax_loop_cb(TSNode node, void* syntax_callback);
+bool read_file(const char* path, char* out, uint32_t* out_len);
+

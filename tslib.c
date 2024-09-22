@@ -1,12 +1,19 @@
+#include <windows.h>
 #include <stdio.h>
+#include <fcntl.h>
+#include <strsafe.h>
 #include "tslib.h"
 
 Context* initialize() {
     Context* ctx = malloc(sizeof(Context));
-    ctx->current = NONE;
+    ctx->language = NONE;
     ctx->tsls[0] = tree_sitter_javascript();
-	ctx->scmpath[0] = "/path/to/tree-sitter-rust/queries/highlights.scm";
     ctx->tsls_length = 1;
+	ctx->scmpath[0] = "tree-sitter-javascript/queries/highlights.scm";
+    ctx->scmpath_length = 1;
+    ctx->scm[0] = NULL;
+    ctx->scm_length = 1;
+    ctx->scm_sizes[0] = 0;
     ctx->parser = ts_parser_new();
     ctx->tree = NULL;
     return ctx;
@@ -14,14 +21,22 @@ Context* initialize() {
 
 bool set_language(Context* ctx, enum Language language) {
     switch (language) {
-        case JAVASCRIPT:
-			ctx->current = language;
-			
-            return ts_parser_set_language(ctx->parser, ctx->tsls[0]);
-        case NONE:
-            return false;
+        case JAVASCRIPT: ctx->language = language; break;
+        case NONE: return false;
     }
-    return false;
+    // Unknown is 0, so everything is shifted once back
+    int idx = ctx->language - 1;
+    // Check if we have that language's SCM loaded
+    if (ctx->scm[idx] == NULL) {
+        char* highlights_query = malloc(sizeof(char) * MAX_SCM_BUFFER_SIZE + 1);
+        uint32_t highlights_query_len = 0;
+        if (!read_file(ctx->scmpath[idx], highlights_query, &highlights_query_len)) {
+            return false;
+        }
+        ctx->scm[idx] = highlights_query;
+        ctx->scm_sizes[idx] = highlights_query_len;
+    }
+    return ts_parser_set_language(ctx->parser, ctx->tsls[idx]);
 }
 
 bool parse_string(Context* ctx, char* string, uint32_t string_length, TSInputEncoding encoding) {
@@ -34,8 +49,6 @@ bool parse_string(Context* ctx, char* string, uint32_t string_length, TSInputEnc
     );
     return ctx->tree != NULL;
 }
-
-
 
 void print_syntax_tree(Context* ctx) {
     TSNode root_node = ts_tree_root_node(ctx->tree);
@@ -146,4 +159,54 @@ void get_syntax_loop_cb(TSNode node, void (*syntax_callback)(uint32_t, uint32_t,
     for(int i = 0; i < child_count; i++) {
         get_syntax_loop_cb(ts_node_child(node, i), syntax_callback);
     }
+}
+
+void ErrorExit(LPCTSTR lpszFunction) 
+{ 
+    // Retrieve the system error message for the last-error code
+
+    LPVOID lpMsgBuf;
+    LPVOID lpDisplayBuf;
+    DWORD dw = GetLastError(); 
+
+    FormatMessage(
+        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
+        FORMAT_MESSAGE_FROM_SYSTEM |
+        FORMAT_MESSAGE_IGNORE_INSERTS,
+        NULL,
+        dw,
+        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+        (LPTSTR) &lpMsgBuf,
+        0, NULL );
+
+    // Display the error message and exit the process
+
+    lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT, 
+        (lstrlen((LPCTSTR)lpMsgBuf) + lstrlen((LPCTSTR)lpszFunction) + 40) * sizeof(TCHAR)); 
+    StringCchPrintf((LPTSTR)lpDisplayBuf, 
+        LocalSize(lpDisplayBuf) / sizeof(TCHAR),
+        TEXT("%s failed with error %d: %s"), 
+        lpszFunction, dw, lpMsgBuf); 
+    printf("%s", (LPCTSTR)lpDisplayBuf);
+    // MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK); 
+
+    LocalFree(lpMsgBuf);
+    LocalFree(lpDisplayBuf);
+    ExitProcess(dw); 
+}
+
+bool read_file(const char* path, char* out, uint32_t* out_len) {
+    char ReadBuffer[MAX_SCM_BUFFER_SIZE] = {0};
+    DWORD bytes_read = 0;
+    HANDLE hFile = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+    if (hFile == INVALID_HANDLE_VALUE) { 
+        return false;
+    }
+    if (!ReadFile(hFile, out, MAX_SCM_BUFFER_SIZE - 1, &bytes_read, NULL)){
+        ErrorExit(TEXT("ReadFile"));
+        return false;
+    }
+    *out_len = bytes_read;
+
+    return true;
 }
