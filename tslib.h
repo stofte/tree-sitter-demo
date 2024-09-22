@@ -62,8 +62,8 @@ __declspec(dllexport) bool get_syntax_cb(Context* ctx, uint32_t start_row, uint3
 __declspec(dllexport) void free_syntax(NodeList* node_list);
 __declspec(dllexport) void free_context(Context* ctx);
 __declspec(dllexport) void print_syntax_tree(Context* ctx);
+__declspec(dllexport) bool get_highlights(Context* ctx, char* source);
 
 void get_syntax_loop(TSNode node, NodeList* node_list);
 void get_syntax_loop_cb(TSNode node, void* syntax_callback);
 bool read_file(const char* path, char* out, uint32_t* out_len);
-

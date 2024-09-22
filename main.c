@@ -20,7 +20,7 @@ void main() {
         SyntaxNode sn = nl->list[i];
         char *named_str = sn.named ? "T" : "F";
         printf("syntax before: [%d:%d]-[%d:%d][%s] => %s\n", sn.start.row, sn.start.column, sn.end.row, sn.end.column, named_str, sn.nodetype);
-    }	
+    }
     uint32_t startByte = 8;
     uint32_t oldEndByte = 10;
     uint32_t newEndByte = 12;
@@ -56,6 +56,9 @@ void main() {
     }
 	
 	print_syntax_tree(ctx);
+
+    source_code = "var x = \"42\";";
+    get_highlights(ctx, source_code);
 }
 
 char foo[6] = " \"42\"";

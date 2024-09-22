@@ -210,3 +210,43 @@ bool read_file(const char* path, char* out, uint32_t* out_len) {
 
     return true;
 }
+
+bool get_highlights(Context* ctx, char* source) {
+    // https://github.com/tree-sitter/tree-sitter/discussions/3423
+    int idx = ctx->language - 1;
+    TSQueryError query_error = {0};
+    uint32_t query_error_offset = 0;
+    TSQuery *query = ts_query_new(ctx->tsls[idx], ctx->scm[idx], ctx->scm_sizes[idx], &query_error_offset, &query_error);
+    if (query == NULL) {
+        printf("ts_query_new failed: %d, %d", query_error, query_error_offset);
+        return false;
+    }
+
+    TSNode root_node = ts_tree_root_node(ctx->tree);
+    TSQueryCursor *cursor = ts_query_cursor_new();
+    ts_query_cursor_exec(cursor, query, root_node);
+    printf("query matches:\n\n");
+
+    TSQueryMatch match = {0};
+    uint32_t capture_index = 0;
+    /* while (ts_query_cursor_next_match(cursor, &match)) { */
+    while (ts_query_cursor_next_capture(cursor, &match, &capture_index)) {
+        TSNode node = match.captures->node;
+        uint32_t captures_index = match.captures->index;
+
+        /* printf("id: %2d, pattern_index: %2d, capture_count: %2d, " */
+        /*        "captures->index: %2d, capture_index: %2d\n", */
+        /*        match.id, match.pattern_index, match.capture_count, */
+        /*        captures_index, capture_index); */
+        uint32_t capture_name_len = 0;
+        const char *capture_name = ts_query_capture_name_for_id(query, captures_index, &capture_name_len);
+        printf("capture name: %s\n", capture_name);
+
+        int start = ts_node_start_byte(node);
+        int end = ts_node_end_byte(node);
+        printf("source: %.*s\n", end - start, source + start);
+        printf("\n");
+    }
+
+    return true;
+}
