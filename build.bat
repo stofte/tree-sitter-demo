@@ -13,6 +13,9 @@ set CLCMDEXE=%CLCMD% main.c /Feout\main.exe
 set CLCMDLIB=%CLCMD% /LD /Feout\tslib.dll
 @echo on
 %CLCMDLIB%
+if %ErrorLevel%==0 (
+	copy out\tslib.dll test-editor\tslib.dll
+) 
 %CLCMDEXE%
 if %ErrorLevel%==0 (
 	out\main.exe

@@ -3,11 +3,12 @@
 #include "tslib.h"
 
 char* getbuffer(void *payload, uint32_t byte_index, TSPoint position, uint32_t *bytes_read);
+void hl_callback(uint32_t byte_start, uint32_t byte_end, const char* capture_name);
 
 void main() {
     char* source_code = "var x = 42;";
-    Context* ctx = initialize();
-    set_language(ctx, 1);
+    Context* ctx = initialize(true);
+    set_language(ctx, 1, "tree-sitter-javascript/queries/highlights.scm");
     if (!parse_string(ctx, source_code, strlen(source_code), TSInputEncodingUTF8)) {
         printf("Failed parse_string.\n");
         return;
@@ -57,8 +58,19 @@ void main() {
 	
 	print_syntax_tree(ctx);
 
-    source_code = "var x = \"42\";";
-    get_highlights(ctx, source_code);
+    printf("query matches (for just quote):\n\n");
+    get_highlights(ctx, 8, 1, hl_callback);
+    printf("query matches (for whole string):\n\n");
+    get_highlights(ctx, 8, 4, hl_callback);
+    printf("query matches (for whole buffer):\n\n");
+    get_highlights(ctx, 4, 2, hl_callback);
+}
+
+char* global_source = "var x = \"42\";";
+
+void hl_callback(uint32_t byte_start, uint32_t byte_length, const char* capture_name) {
+    printf("%s:", capture_name);
+    printf("%.*s\n", byte_length, global_source + byte_start);
 }
 
 char foo[6] = " \"42\"";

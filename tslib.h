@@ -1,3 +1,6 @@
+#ifndef TSLIB_H
+#define TSLIB_H
+
 #include <tree_sitter\api.h>
 #include <tree_sitter\highlight.h>
 #include <tree-sitter-javascript.h>
@@ -8,6 +11,21 @@
 #define MAX_NODE_RESULTS 1000
 #define MAX_SCM_BUFFER_SIZE 10000
 
+static bool tslib_log_to_stdout = true;
+
+// https://stackoverflow.com/a/26305665/2491
+#define LOG(fmt, ...) \
+    if (!tslib_log_to_stdout) \
+        do { \
+            FILE* f = fopen("tslib.log", "a"); \
+            if(!f) \
+                break ; \
+            fprintf(f, fmt, __VA_ARGS__); \
+            fclose(f); \
+        } while(0); \
+    else \
+        printf(fmt, __VA_ARGS__);
+
 enum Language {
     NONE,
     JAVASCRIPT,
@@ -17,8 +35,6 @@ typedef struct Context {
     enum Language language;
     const TSLanguage* tsls[1];
     uint32_t tsls_length;
-    const char* scmpath[1];
-    uint32_t scmpath_length;
     const char* scm[1];
     uint32_t scm_length; // number of entries in scm array
     uint32_t scm_sizes[1]; // the lengths of each pointer in scm array
@@ -38,8 +54,8 @@ typedef struct NodeList {
     uint32_t length;
 } NodeList;
 
-__declspec(dllexport) Context* initialize();
-__declspec(dllexport) bool set_language(Context* ctx, enum Language language);
+__declspec(dllexport) Context* initialize(bool log_to_stdout);
+__declspec(dllexport) bool set_language(Context* ctx, enum Language language, char* scm_path);
 __declspec(dllexport) bool parse_string(Context* ctx, char* string, uint32_t string_length, TSInputEncoding encoding);
 __declspec(dllexport) bool edit_string(
     Context* ctx,
@@ -62,8 +78,11 @@ __declspec(dllexport) bool get_syntax_cb(Context* ctx, uint32_t start_row, uint3
 __declspec(dllexport) void free_syntax(NodeList* node_list);
 __declspec(dllexport) void free_context(Context* ctx);
 __declspec(dllexport) void print_syntax_tree(Context* ctx);
-__declspec(dllexport) bool get_highlights(Context* ctx, char* source);
+__declspec(dllexport) char* syntax_tree(Context* ctx);
+__declspec(dllexport) bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, void (*hl_callback)(uint32_t, uint32_t, const char*));
 
 void get_syntax_loop(TSNode node, NodeList* node_list);
 void get_syntax_loop_cb(TSNode node, void* syntax_callback);
 bool read_file(const char* path, char* out, uint32_t* out_len);
+
+#endif

@@ -4,42 +4,55 @@
 #include <strsafe.h>
 #include "tslib.h"
 
-Context* initialize() {
+Context* initialize(bool log_to_stdout) {
+    LOG("TSLIB INIT: log_to_stdout: %d \n", log_to_stdout);
+
+    // TODO also set encoding here?
+
     Context* ctx = malloc(sizeof(Context));
     ctx->language = NONE;
     ctx->tsls[0] = tree_sitter_javascript();
     ctx->tsls_length = 1;
-	ctx->scmpath[0] = "tree-sitter-javascript/queries/highlights.scm";
-    ctx->scmpath_length = 1;
     ctx->scm[0] = NULL;
     ctx->scm_length = 1;
     ctx->scm_sizes[0] = 0;
     ctx->parser = ts_parser_new();
     ctx->tree = NULL;
+
+    tslib_log_to_stdout = log_to_stdout;
+    
     return ctx;
 }
 
-bool set_language(Context* ctx, enum Language language) {
+bool set_language(Context* ctx, enum Language language, char* scm_path) {
+    LOG("set_language called with %d and scm_path: %s\n", language, scm_path);
     switch (language) {
         case JAVASCRIPT: ctx->language = language; break;
         case NONE: return false;
     }
+    LOG("set_language passed switch with lang %d\n", ctx->language);
     // Unknown is 0, so everything is shifted once back
     int idx = ctx->language - 1;
     // Check if we have that language's SCM loaded
+
     if (ctx->scm[idx] == NULL) {
         char* highlights_query = malloc(sizeof(char) * MAX_SCM_BUFFER_SIZE + 1);
         uint32_t highlights_query_len = 0;
-        if (!read_file(ctx->scmpath[idx], highlights_query, &highlights_query_len)) {
+        if (!read_file(scm_path, highlights_query, &highlights_query_len)) {
+            LOG("Failed read_file\n");
             return false;
         }
         ctx->scm[idx] = highlights_query;
         ctx->scm_sizes[idx] = highlights_query_len;
+        LOG("SCM STRING:\n%s\n", highlights_query);
+    } else {
+        LOG("set_language idx=%d\n", idx);
     }
     return ts_parser_set_language(ctx->parser, ctx->tsls[idx]);
 }
 
 bool parse_string(Context* ctx, char* string, uint32_t string_length, TSInputEncoding encoding) {
+    LOG("INCOMING STR: \"%s\"\n", string);
     ctx->tree = ts_parser_parse_string_encoding(
         ctx->parser,
         NULL,
@@ -50,9 +63,14 @@ bool parse_string(Context* ctx, char* string, uint32_t string_length, TSInputEnc
     return ctx->tree != NULL;
 }
 
+char* syntax_tree(Context* ctx) {
+    TSNode root_node = ts_tree_root_node(ctx->tree);
+    return ts_node_string(root_node);
+}
+
 void print_syntax_tree(Context* ctx) {
     TSNode root_node = ts_tree_root_node(ctx->tree);
-    printf("%s\n\n\n", ts_node_string(root_node));	
+    LOG("%s\n\n\n", ts_node_string(root_node));
 }
 
 bool edit_string(
@@ -161,6 +179,38 @@ void get_syntax_loop_cb(TSNode node, void (*syntax_callback)(uint32_t, uint32_t,
     }
 }
 
+bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, void (*hl_callback)(uint32_t, uint32_t, const char*)) {
+    int idx = ctx->language - 1;
+
+    // https://github.com/tree-sitter/tree-sitter/discussions/3423
+    TSQueryError query_error = {0};
+    uint32_t query_error_offset = 0;
+    TSQuery *query = ts_query_new(ctx->tsls[idx], ctx->scm[idx], ctx->scm_sizes[idx], &query_error_offset, &query_error);
+    if (query == NULL) {
+        printf("ts_query_new failed: %d, %d", query_error, query_error_offset);
+        return false;
+    }
+
+    TSNode root_node = ts_tree_root_node(ctx->tree);
+    TSNode query_node = ts_node_descendant_for_byte_range(root_node, byte_offset, byte_offset + byte_length);
+    TSQueryCursor *cursor = ts_query_cursor_new();
+    ts_query_cursor_exec(cursor, query, query_node);
+    
+    TSQueryMatch match = {0};
+    uint32_t capture_index = 0;
+    while (ts_query_cursor_next_capture(cursor, &match, &capture_index)) {
+        TSNode node = match.captures->node;
+        uint32_t captures_index = match.captures->index;
+        uint32_t capture_name_len = 0;
+        const char *capture_name = ts_query_capture_name_for_id(query, captures_index, &capture_name_len);
+        int start = ts_node_start_byte(node);
+        int end = ts_node_end_byte(node);
+        hl_callback(start, end - start, capture_name);
+    }
+
+    return true;
+}
+
 void ErrorExit(LPCTSTR lpszFunction) 
 { 
     // Retrieve the system error message for the last-error code
@@ -207,46 +257,6 @@ bool read_file(const char* path, char* out, uint32_t* out_len) {
         return false;
     }
     *out_len = bytes_read;
-
-    return true;
-}
-
-bool get_highlights(Context* ctx, char* source) {
-    // https://github.com/tree-sitter/tree-sitter/discussions/3423
-    int idx = ctx->language - 1;
-    TSQueryError query_error = {0};
-    uint32_t query_error_offset = 0;
-    TSQuery *query = ts_query_new(ctx->tsls[idx], ctx->scm[idx], ctx->scm_sizes[idx], &query_error_offset, &query_error);
-    if (query == NULL) {
-        printf("ts_query_new failed: %d, %d", query_error, query_error_offset);
-        return false;
-    }
-
-    TSNode root_node = ts_tree_root_node(ctx->tree);
-    TSQueryCursor *cursor = ts_query_cursor_new();
-    ts_query_cursor_exec(cursor, query, root_node);
-    printf("query matches:\n\n");
-
-    TSQueryMatch match = {0};
-    uint32_t capture_index = 0;
-    /* while (ts_query_cursor_next_match(cursor, &match)) { */
-    while (ts_query_cursor_next_capture(cursor, &match, &capture_index)) {
-        TSNode node = match.captures->node;
-        uint32_t captures_index = match.captures->index;
-
-        /* printf("id: %2d, pattern_index: %2d, capture_count: %2d, " */
-        /*        "captures->index: %2d, capture_index: %2d\n", */
-        /*        match.id, match.pattern_index, match.capture_count, */
-        /*        captures_index, capture_index); */
-        uint32_t capture_name_len = 0;
-        const char *capture_name = ts_query_capture_name_for_id(query, captures_index, &capture_name_len);
-        printf("capture name: %s\n", capture_name);
-
-        int start = ts_node_start_byte(node);
-        int end = ts_node_end_byte(node);
-        printf("source: %.*s\n", end - start, source + start);
-        printf("\n");
-    }
 
     return true;
 }
