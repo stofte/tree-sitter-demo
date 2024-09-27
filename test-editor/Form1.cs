@@ -32,6 +32,7 @@ namespace test_editor
         TreeSitterLib.Language tsLanguage = TreeSitterLib.Language.JAVASCRIPT;
         IDictionary<string, Color> theme = new Dictionary<string, Color>();
         bool colorizing = false;
+        bool openingText = false;
         
         OpenFileDialog openFileDialog = new OpenFileDialog();
 
@@ -47,9 +48,8 @@ namespace test_editor
             tsContext = TreeSitterLib.initialize(log_to_stdout: false);
             var status = TreeSitterLib.set_language(tsContext, tsLanguage, @"C:\Users\set\Desktop\tslib\tree-sitter-javascript\queries\highlights.scm");
             InsertLogLine($"tslib.set_language=\"{tsLanguage}\" \u2192 {status}");
-            status = TreeSitterLib.parse_string(tsContext, text, (uint)text.Length, TreeSitterLib.TSInputEncoding.TSInputEncodingUTF8);
-            InsertLogLine($"tslib.parse_string=\"{text}\" \u2192 {status}");
 
+            LoadFile(null);
             UpdateStatusLabel();
         }
 
@@ -86,6 +86,12 @@ namespace test_editor
 
         private void RichTextBox1_TextChanged(object? sender, EventArgs e)
         {
+            if (openingText)
+            {
+                openingText = false;
+                return;
+            }
+
             var newText = richTextBox1.Text;
 
             // We only care if the text is changed somehow
@@ -221,7 +227,19 @@ namespace test_editor
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 InsertLogLine($"Opening {openFileDialog.FileName}");
-                richTextBox1.Text = File.ReadAllText(openFileDialog.FileName);
+                LoadFile(openFileDialog.FileName);
+            }
+        }
+
+        private void LoadFile(string filePath)
+        {
+            var code = string.IsNullOrWhiteSpace(filePath) ? "" : File.ReadAllText(openFileDialog.FileName);
+            openingText = true;
+            text = code;
+            richTextBox1.Text = code;
+            if (!TreeSitterLib.parse_string(tsContext, code, (uint)code.Length, TreeSitterLib.TSInputEncoding.TSInputEncodingUTF8))
+            {
+                InsertLogLine("Failed to parse_string");
             }
         }
     }

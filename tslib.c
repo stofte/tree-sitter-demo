@@ -45,8 +45,6 @@ bool set_language(Context* ctx, enum Language language, char* scm_path) {
         ctx->scm[idx] = highlights_query;
         ctx->scm_sizes[idx] = highlights_query_len;
         LOG("SCM STRING:\n%s\n", highlights_query);
-    } else {
-        LOG("set_language idx=%d\n", idx);
     }
     return ts_parser_set_language(ctx->parser, ctx->tsls[idx]);
 }
