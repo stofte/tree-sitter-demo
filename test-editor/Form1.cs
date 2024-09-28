@@ -256,7 +256,11 @@ namespace test_editor
         private void LoadFile(string filePath)
         {
             var code = string.IsNullOrWhiteSpace(filePath) ? "" : File.ReadAllText(openFileDialog.FileName);
-            openingText = true;
+            if (text != richTextBox1.Text)
+            {
+                // only if the text differs
+                openingText = true;
+            }
             text = code;
             richTextBox1.Text = code;
             if (!TreeSitterLib.parse_string(tsContext, code, (uint)code.Length, TreeSitterLib.TSInputEncoding.TSInputEncodingUTF8))
