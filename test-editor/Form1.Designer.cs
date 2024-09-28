@@ -36,8 +36,9 @@
             toolStripMenuItem1 = new ToolStripMenuItem();
             cursorInfo = new ToolStripStatusLabel();
             splitContainer1 = new SplitContainer();
-            textBox1 = new TextBox();
             richTextBox1 = new RichTextBox();
+            label1 = new Label();
+            textBox1 = new TextBox();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -111,10 +112,30 @@
             // 
             // splitContainer1.Panel2
             // 
+            splitContainer1.Panel2.Controls.Add(label1);
             splitContainer1.Panel2.Controls.Add(textBox1);
             splitContainer1.Size = new Size(984, 425);
             splitContainer1.SplitterDistance = 495;
             splitContainer1.TabIndex = 2;
+            // 
+            // richTextBox1
+            // 
+            richTextBox1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            richTextBox1.Font = new Font("Consolas", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            richTextBox1.Location = new Point(0, 0);
+            richTextBox1.Name = "richTextBox1";
+            richTextBox1.Size = new Size(493, 425);
+            richTextBox1.TabIndex = 0;
+            richTextBox1.Text = "";
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Location = new Point(-100, 303);
+            label1.Name = "label1";
+            label1.Size = new Size(38, 15);
+            label1.TabIndex = 1;
+            label1.Text = "label1";
             // 
             // textBox1
             // 
@@ -169,5 +190,6 @@
         private ToolStripDropDownButton toolStripDropDownButton2;
         private ToolStripDropDownButton toolStripDropDownButton3;
         private RichTextBox richTextBox1;
+        private Label label1;
     }
 }

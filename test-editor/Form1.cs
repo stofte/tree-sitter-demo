@@ -36,6 +36,22 @@ namespace test_editor
         
         OpenFileDialog openFileDialog = new OpenFileDialog();
 
+        [DllImport("user32.dll")]
+        public static extern int SendMessage(IntPtr hWnd, Int32 wMsg, bool wParam, Int32 lParam);
+        private const int WM_SETREDRAW = 11;
+
+        public static void SuspendDrawing(Control Target)
+        {
+            SendMessage(Target.Handle, WM_SETREDRAW, false, 0);
+        }
+
+        public static void ResumeDrawing(Control Target)
+        {
+            SendMessage(Target.Handle, WM_SETREDRAW, true, 0);
+            Target.Invalidate(true);
+            Target.Update();
+        }
+
         public Form1()
         {
             InitializeComponent();
@@ -136,6 +152,9 @@ namespace test_editor
 
                 var sw = Stopwatch.StartNew();
                 colorizing = true;
+                SuspendDrawing(richTextBox1);
+                label1.Focus();
+                richTextBox1.Enabled = false;
                 var prevSelectionStart = richTextBox1.SelectionStart;
                 var prevSelectionLength = richTextBox1.SelectionLength;
                 var hlCallbacks = 0;
@@ -154,6 +173,9 @@ namespace test_editor
                 });
                 richTextBox1.SelectionLength = prevSelectionLength;
                 richTextBox1.SelectionStart = prevSelectionStart;
+                richTextBox1.Enabled = true;
+                ResumeDrawing(richTextBox1);
+                richTextBox1.Focus();
                 colorizing = false;
                 var elapsed = sw.Elapsed;
                 InsertLogLine($"Paint info: callbacks={hlCallbacks}; elapsed={elapsed.TotalMilliseconds}ms");
