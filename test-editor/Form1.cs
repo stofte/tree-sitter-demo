@@ -268,5 +268,11 @@ namespace test_editor
                 InsertLogLine("Failed to parse_string");
             }
         }
+
+        private void toolStripDropDownButton4_Click(object sender, EventArgs e)
+        {
+            var s = string.Join("\n", theme.OrderBy(x => x.Key).Select(x => $"{x.Key}: {x.Value}"));
+            InsertLogLine($"ThemeInfo\n{s}", replaceNewlines: false);
+        }
     }
 }

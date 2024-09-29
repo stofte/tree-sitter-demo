@@ -39,6 +39,7 @@
             richTextBox1 = new RichTextBox();
             label1 = new Label();
             textBox1 = new TextBox();
+            toolStripDropDownButton4 = new ToolStripDropDownButton();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -48,7 +49,7 @@
             // 
             // statusStrip1
             // 
-            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripDropDownButton3, toolStripDropDownButton2, toolStripDropDownButton1, cursorInfo });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripDropDownButton3, toolStripDropDownButton2, toolStripDropDownButton4, toolStripDropDownButton1, cursorInfo });
             statusStrip1.Location = new Point(0, 428);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new Size(984, 22);
@@ -95,7 +96,7 @@
             // cursorInfo
             // 
             cursorInfo.Name = "cursorInfo";
-            cursorInfo.Size = new Size(778, 17);
+            cursorInfo.Size = new Size(718, 17);
             cursorInfo.Spring = true;
             cursorInfo.Text = "cursorInfo";
             cursorInfo.TextAlign = ContentAlignment.MiddleRight;
@@ -120,6 +121,7 @@
             // 
             // richTextBox1
             // 
+            richTextBox1.AcceptsTab = true;
             richTextBox1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             richTextBox1.Font = new Font("Consolas", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
             richTextBox1.Location = new Point(0, 0);
@@ -149,16 +151,16 @@
             textBox1.Size = new Size(485, 425);
             textBox1.TabIndex = 0;
             // 
-            // richTextBox1
+            // toolStripDropDownButton4
             // 
-            richTextBox1.AcceptsTab = true;
-            richTextBox1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            richTextBox1.Font = new Font("Consolas", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            richTextBox1.Location = new Point(0, 0);
-            richTextBox1.Name = "richTextBox1";
-            richTextBox1.Size = new Size(493, 425);
-            richTextBox1.TabIndex = 0;
-            richTextBox1.Text = "";
+            toolStripDropDownButton4.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            toolStripDropDownButton4.Image = (Image)resources.GetObject("toolStripDropDownButton4.Image");
+            toolStripDropDownButton4.ImageTransparentColor = Color.Magenta;
+            toolStripDropDownButton4.Name = "toolStripDropDownButton4";
+            toolStripDropDownButton4.ShowDropDownArrow = false;
+            toolStripDropDownButton4.Size = new Size(68, 20);
+            toolStripDropDownButton4.Text = "ThemeInfo";
+            toolStripDropDownButton4.Click += toolStripDropDownButton4_Click;
             // 
             // Form1
             // 
@@ -191,5 +193,6 @@
         private ToolStripDropDownButton toolStripDropDownButton3;
         private RichTextBox richTextBox1;
         private Label label1;
+        private ToolStripDropDownButton toolStripDropDownButton4;
     }
 }
