@@ -61,10 +61,6 @@ namespace test_editor
             toolStripDropDownButton2.Click += ToolStripDropDownButton2_Click;
             text = richTextBox1.Text;
 
-            tsContext = TreeSitterLib.initialize(log_to_stdout: false);
-            var status = TreeSitterLib.set_language(tsContext, tsLanguage, @"C:\Users\set\Desktop\tslib\tree-sitter-javascript\queries\highlights.scm");
-            InsertLogLine($"tslib.set_language=\"{tsLanguage}\" \u2192 {status}");
-
             LoadFile(null);
             UpdateStatusLabel();
         }
@@ -117,6 +113,8 @@ namespace test_editor
                 var rmTxt = text.Substring(startIdx, oldSelectionEnd - startIdx);
                 var adTxt = newText.Substring(startIdx, selectionEnd - startIdx);
 
+                InsertLogLine($"edit_string: bytes=({startIdx}, {oldSelectionEnd}, {selectionEnd}), start=({startLine}, {startColumn}), oldEnd=({oldEndLine}, {oldEndColumn}), newEnd=({endLine}, {endColumn})");
+
                 var status = TreeSitterLib.edit_string(
                     tsContext,
                     start_byte: (uint)startIdx,
@@ -141,6 +139,10 @@ namespace test_editor
                         {
                             bytes_read = 0;
                         }
+                        if (snip != null &&snip.Length > 100)
+                        {
+                            snip = $"{snip.Substring(0, 48)}...{snip.Substring(snip.Length-48)}";
+                        }
                         InsertLogLine($"CB: byte_index={byte_index}, bytes_read={bytes_read}, snip={snip}");
                         return snip;
                     },
@@ -150,35 +152,7 @@ namespace test_editor
                 var evt = $"start={startIdx} \u2215 new_end={selectionEnd} \u2215 old_end={oldSelectionEnd} \u2215 removed=\"{rmTxt}\" \u2215 added=\"{adTxt}\" \u2215 edit_string={status}";
                 InsertLogLine(evt);
 
-                var sw = Stopwatch.StartNew();
-                colorizing = true;
-                SuspendDrawing(richTextBox1);
-                label1.Focus();
-                richTextBox1.Enabled = false;
-                var prevSelectionStart = richTextBox1.SelectionStart;
-                var prevSelectionLength = richTextBox1.SelectionLength;
-                var hlCallbacks = 0;
-                int firstVisibleChar = richTextBox1.GetCharIndexFromPosition(new Point(0, 0));
-
-                TreeSitterLib.get_highlights(tsContext, 0, (uint)newText.Length, (byte_start, byte_length, captureName) =>
-                {
-                    if (!theme.ContainsKey(captureName))
-                    {
-                        theme.Add(captureName, GetRandomColor());
-                    }
-                    richTextBox1.SelectionStart = (int)byte_start;
-                    richTextBox1.SelectionLength = (int)byte_length;
-                    richTextBox1.SelectionColor = theme[captureName];
-                    hlCallbacks++;
-                });
-                richTextBox1.SelectionLength = prevSelectionLength;
-                richTextBox1.SelectionStart = prevSelectionStart;
-                richTextBox1.Enabled = true;
-                ResumeDrawing(richTextBox1);
-                richTextBox1.Focus();
-                colorizing = false;
-                var elapsed = sw.Elapsed;
-                InsertLogLine($"Paint info: callbacks={hlCallbacks}; elapsed={elapsed.TotalMilliseconds}ms");
+                HighlightRange((uint)startIdx, (uint)(selectionEnd - startIdx));
             }
 
             text = newText;
@@ -201,9 +175,6 @@ namespace test_editor
 
             var newEndLine = richTextBox1.GetLineFromCharIndex(newEnd);
             var newEndColumn = newEnd - richTextBox1.GetFirstCharIndexFromLine(newEndLine);
-
-            var oldEndLine = endLine;
-            var oldEndColumn = endColumn;
 
             oldSelectionStart = selectionStart;
             oldSelectionEnd = selectionEnd;
@@ -263,16 +234,53 @@ namespace test_editor
             }
             text = code;
             richTextBox1.Text = code;
+            tsContext = TreeSitterLib.initialize(log_to_stdout: false);
+            var status = TreeSitterLib.set_language(tsContext, tsLanguage, @"C:\Users\set\Desktop\tslib\tree-sitter-javascript\queries\highlights.scm");
+            InsertLogLine($"tslib.set_language=\"{tsLanguage}\" \u2192 {status}");
             if (!TreeSitterLib.parse_string(tsContext, code, (uint)code.Length, TreeSitterLib.TSInputEncoding.TSInputEncodingUTF8))
             {
                 InsertLogLine("Failed to parse_string");
             }
+            // First time, we colorize the whole thing
+            HighlightRange(0, (uint)text.Length);
         }
 
         private void toolStripDropDownButton4_Click(object sender, EventArgs e)
         {
             var s = string.Join("\n", theme.OrderBy(x => x.Key).Select(x => $"{x.Key}: {x.Value}"));
             InsertLogLine($"ThemeInfo\n{s}", replaceNewlines: false);
+        }
+
+        private void HighlightRange(uint from, uint count)
+        {
+            var sw = Stopwatch.StartNew();
+            colorizing = true;
+            SuspendDrawing(richTextBox1);
+            label1.Focus();
+            richTextBox1.Enabled = false;
+            var prevSelectionStart = richTextBox1.SelectionStart;
+            var prevSelectionLength = richTextBox1.SelectionLength;
+            var hlCallbacks = 0;
+            
+            TreeSitterLib.get_highlights(tsContext, from, count, (byte_start, byte_length, captureName) =>
+            {
+                if (!theme.ContainsKey(captureName))
+                {
+                    theme.Add(captureName, GetRandomColor());
+                }
+                richTextBox1.SelectionStart = (int)byte_start;
+                richTextBox1.SelectionLength = (int)byte_length;
+                richTextBox1.SelectionColor = theme[captureName];
+                hlCallbacks++;
+            });
+            richTextBox1.SelectionLength = prevSelectionLength;
+            richTextBox1.SelectionStart = prevSelectionStart;
+            richTextBox1.Enabled = true;
+            ResumeDrawing(richTextBox1);
+            richTextBox1.Focus();
+            colorizing = false;
+            var elapsed = sw.Elapsed;
+            InsertLogLine($"Paint info: callbacks={hlCallbacks}; elapsed={elapsed.TotalMilliseconds}ms");
         }
     }
 }
