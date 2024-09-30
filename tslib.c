@@ -185,12 +185,13 @@ bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, vo
     uint32_t query_error_offset = 0;
     TSQuery *query = ts_query_new(ctx->tsls[idx], ctx->scm[idx], ctx->scm_sizes[idx], &query_error_offset, &query_error);
     if (query == NULL) {
-        printf("ts_query_new failed: %d, %d", query_error, query_error_offset);
+        LOG("ts_query_new failed: %d, %d", query_error, query_error_offset);
         return false;
     }
 
     TSNode root_node = ts_tree_root_node(ctx->tree);
     TSNode query_node = ts_node_descendant_for_byte_range(root_node, byte_offset, byte_offset + byte_length);
+    LOG("query_node: from %d to %d\n", ts_node_start_byte(query_node), ts_node_end_byte(query_node));
     TSQueryCursor *cursor = ts_query_cursor_new();
     ts_query_cursor_exec(cursor, query, query_node);
     
