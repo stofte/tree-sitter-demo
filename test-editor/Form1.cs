@@ -139,11 +139,12 @@ namespace test_editor
                         {
                             bytes_read = 0;
                         }
-                        if (snip != null &&snip.Length > 100)
+                        var logsnip = snip;
+                        if (logsnip != null && logsnip.Length > 100)
                         {
-                            snip = $"{snip.Substring(0, 48)}...{snip.Substring(snip.Length-48)}";
+                            logsnip = $"{logsnip.Substring(0, 48)}...{logsnip.Substring(logsnip.Length-48)}";
                         }
-                        InsertLogLine($"CB: byte_index={byte_index}, bytes_read={bytes_read}, snip={snip}");
+                        InsertLogLine($"CB: byte_index={byte_index}, bytes_read={bytes_read}, snip={logsnip}");
                         return snip;
                     },
                     TreeSitterLib.TSInputEncoding.TSInputEncodingUTF8
