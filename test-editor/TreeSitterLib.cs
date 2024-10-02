@@ -33,17 +33,17 @@ namespace test_editor
 
         [LibraryImport("tslib.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static partial bool set_language(IntPtr ctx, Language language, [MarshalAs(UnmanagedType.LPStr)] string str);
+        public static partial bool set_language(IntPtr ctx, Language language, [MarshalAs(UnmanagedType.LPUTF8Str)] string str);
 
         [LibraryImport("tslib.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static partial bool parse_string(IntPtr ctx, [MarshalAs(UnmanagedType.LPStr)] string str, uint str_length, TSInputEncoding encoding);
+        public static partial bool parse_string(IntPtr ctx, [MarshalAs(UnmanagedType.LPUTF8Str)] string str, uint str_length, TSInputEncoding encoding);
 
         [LibraryImport("tslib.dll")]
         public static partial void print_syntax_tree(IntPtr ctx);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        [return: MarshalAs(UnmanagedType.LPStr)]
+        [return: MarshalAs(UnmanagedType.LPUTF8Str)]
         public delegate string? edit_string_callback(IntPtr payload, uint byte_index, TSPoint position, ref uint bytes_read);
 
         [LibraryImport("tslib.dll")]
@@ -64,14 +64,14 @@ namespace test_editor
         );
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void highlights_callback(uint byte_index, uint byte_length, [MarshalAs(UnmanagedType.LPStr)] string capture_name);
+        public delegate void highlights_callback(uint byte_index, uint byte_length, [MarshalAs(UnmanagedType.LPUTF8Str)] string capture_name);
 
         [LibraryImport("tslib.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static partial bool get_highlights(IntPtr ctx, uint byte_offset, uint byte_length, highlights_callback callback);
 
         [LibraryImport("tslib.dll")]
-        [return: MarshalAs(UnmanagedType.LPStr)]
+        [return: MarshalAs(UnmanagedType.LPUTF8Str)]
         public static partial string syntax_tree(IntPtr ctx);
     }
 }
