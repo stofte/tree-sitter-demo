@@ -14,14 +14,6 @@ void main() {
         return;
     }
 	
-	print_syntax_tree(ctx);
-	
-    NodeList* nl = get_syntax(ctx, 8, 10);
-    for (int i = 0; i < nl->length; i++) {
-        SyntaxNode sn = nl->list[i];
-        char *named_str = sn.named ? "T" : "F";
-        printf("syntax before: [%d:%d]-[%d:%d][%s] => %s\n", sn.start.row, sn.start.column, sn.end.row, sn.end.column, named_str, sn.nodetype);
-    }
     uint32_t startByte = 8;
     uint32_t oldEndByte = 10;
     uint32_t newEndByte = 12;
@@ -48,15 +40,6 @@ void main() {
         printf("Failed edit_string.\n");
         return;
     }
-
-    NodeList* nl2 = get_syntax(ctx, 8, 12);
-    for (int i = 0; i < nl2->length; i++) {
-        SyntaxNode sn = nl2->list[i];
-        char *named_str = sn.named ? "T" : "F";
-        printf("syntax after: [%d:%d]-[%d:%d][%s] => %s\n", sn.start.row, sn.start.column, sn.end.row, sn.end.column, named_str, sn.nodetype);
-    }
-	
-	print_syntax_tree(ctx);
 
     printf("query matches (for just quote):\n\n");
     get_highlights(ctx, 8, 1, hl_callback);

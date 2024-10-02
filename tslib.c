@@ -77,16 +77,6 @@ bool parse_string(Context* ctx, char* string, uint32_t string_length, TSInputEnc
     return ctx->tree != NULL;
 }
 
-char* syntax_tree(Context* ctx) {
-    TSNode root_node = ts_tree_root_node(ctx->tree);
-    return ts_node_string(root_node);
-}
-
-void print_syntax_tree(Context* ctx) {
-    TSNode root_node = ts_tree_root_node(ctx->tree);
-    LOG("%s\n\n\n", ts_node_string(root_node));
-}
-
 bool edit_string(
         Context* ctx, 
         // 9x uint32 params goes here
@@ -132,65 +122,6 @@ bool edit_string(
         ctx->tree = newtree;
     }
     return success;
-}
-
-bool get_syntax_cb(Context* ctx, uint32_t start_row, uint32_t start_column, uint32_t end_row, uint32_t end_column, void (*syntax_callback)(uint32_t, uint32_t, uint32_t, uint32_t, bool, const char*)) {
-    TSNode root_node = ts_tree_root_node(ctx->tree);
-    get_syntax_loop_cb(root_node, syntax_callback);
-    return true;
-}
-
-NodeList* get_syntax(Context* ctx, uint32_t start_byte, uint32_t end_byte) {
-    printf("GET_SYNTAX: %d - %d\n", start_byte, end_byte);
-    SyntaxNode* syntax_nodes = malloc(MAX_NODE_RESULTS * sizeof(SyntaxNode));
-    NodeList* node_list = malloc(sizeof(NodeList));
-    node_list->list = syntax_nodes;
-    node_list->length = 0;
-    TSNode root_node = ts_tree_root_node(ctx->tree);
-    TSNode range_node = ts_node_descendant_for_byte_range(root_node, start_byte, end_byte);
-    get_syntax_loop(range_node, node_list);
-    return node_list;
-}
-
-void free_syntax(NodeList* node_list) {
-    free(node_list);
-}
-
-void free_context(Context* ctx) {
-    free(ctx);
-}
-
-void get_syntax_loop(TSNode node, NodeList* node_list) {
-    // todo return NULL if we exceed the allocated memory
-    const char *nodetype = ts_node_type(node);
-    TSPoint nstart = ts_node_start_point(node);
-    TSPoint nend = ts_node_end_point(node);
-    bool is_named = ts_node_is_named(node);
-    char *named_str = is_named ? "T" : "F";
-    uint32_t idx = node_list->length;
-    node_list->list[idx].start = nstart;
-    node_list->list[idx].end = nend;
-    node_list->list[idx].named = is_named;
-    node_list->list[idx].nodetype = nodetype;
-    node_list->length++;
-    printf("[%d:%d]-[%d:%d] => %s\n", nstart.row, nstart.column, nend.row, nend.column, nodetype);
-    uint32_t child_count = ts_node_child_count(node);
-    for(int i = 0; i < child_count; i++) {
-        get_syntax_loop(ts_node_child(node, i), node_list);
-    }    
-}
-
-void get_syntax_loop_cb(TSNode node, void (*syntax_callback)(uint32_t, uint32_t, uint32_t, uint32_t, bool, const char*)) {
-    const char *nodetype = ts_node_type(node);
-    TSPoint nstart = ts_node_start_point(node);
-    TSPoint nend = ts_node_end_point(node);
-    bool is_named = ts_node_is_named(node);
-    char *named_str = is_named ? "T" : "F";
-    syntax_callback(nstart.row, nstart.column, nend.row, nend.column, is_named, nodetype);
-    uint32_t child_count = ts_node_child_count(node);
-    for(int i = 0; i < child_count; i++) {
-        get_syntax_loop_cb(ts_node_child(node, i), syntax_callback);
-    }
 }
 
 bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, void (*hl_callback)(uint32_t, uint32_t, const char*)) {

@@ -73,16 +73,8 @@ __declspec(dllexport) bool edit_string(
     void* buffer_callback,
     TSInputEncoding encoding
 );
-__declspec(dllexport) NodeList* get_syntax(Context* ctx, uint32_t start, uint32_t end);
-__declspec(dllexport) bool get_syntax_cb(Context* ctx, uint32_t start_row, uint32_t start_column, uint32_t end_row, uint32_t end_column, void (*syntax_callback)(uint32_t, uint32_t, uint32_t, uint32_t, bool, const char*));
-__declspec(dllexport) void free_syntax(NodeList* node_list);
-__declspec(dllexport) void free_context(Context* ctx);
-__declspec(dllexport) void print_syntax_tree(Context* ctx);
-__declspec(dllexport) char* syntax_tree(Context* ctx);
 __declspec(dllexport) bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, void (*hl_callback)(uint32_t, uint32_t, const char*));
 
-void get_syntax_loop(TSNode node, NodeList* node_list);
-void get_syntax_loop_cb(TSNode node, void* syntax_callback);
 bool read_file(const char* path, char* out, uint32_t* out_len);
 
 #endif
