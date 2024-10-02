@@ -4,6 +4,15 @@
 #include <strsafe.h>
 #include "tslib.h"
 
+void tslogger_log(void* payload, TSLogType log_type, const char *buffer) {
+    if (log_type == TSLogTypeParse) {
+        LOG("Parse: ");
+    } else if (log_type == TSLogTypeLex) {
+        LOG("Lex: ");
+    }
+    LOG("%s\n", buffer);
+}
+
 Context* initialize(bool log_to_stdout) {
     LOG("TSLIB INIT: log_to_stdout: %d \n", log_to_stdout);
 
@@ -18,6 +27,13 @@ Context* initialize(bool log_to_stdout) {
     ctx->scm_sizes[0] = 0;
     ctx->parser = ts_parser_new();
     ctx->tree = NULL;
+
+    TSLogger logger;
+    logger.payload = NULL;
+    logger.log = &tslogger_log;
+
+    // Enables the ts logger, which is very verbose...
+    // ts_parser_set_logger(ctx->parser, logger);
 
     tslib_log_to_stdout = log_to_stdout;
     
