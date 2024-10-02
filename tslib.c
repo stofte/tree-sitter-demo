@@ -85,6 +85,10 @@ bool parse_string(Context* ctx, char* string, uint32_t string_length, TSInputEnc
     return ctx->tree != NULL;
 }
 
+char* syntax_tree(Context* ctx) {
+    TSNode root_node = ts_tree_root_node(ctx->tree);
+    return ts_node_string(root_node);
+}
 bool edit_string(
         Context* ctx, 
         // 9x uint32 params goes here

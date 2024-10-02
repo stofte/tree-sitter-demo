@@ -75,6 +75,7 @@ __declspec(dllexport) bool edit_string(
     void* buffer_callback,
     TSInputEncoding encoding
 );
+__declspec(dllexport) char* syntax_tree(Context* ctx);
 __declspec(dllexport) bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, void (*hl_callback)(uint32_t, uint32_t, const char*));
 
 bool read_file(const char* path, char* out, uint32_t* out_len);
