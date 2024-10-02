@@ -12,7 +12,7 @@ This has been tested on Windows 11, using VS2022.
 ## Build
 
 - Initialize the git submodules (`git submodule init` and `git submodule update`)
-- Run `build.bat` in the Developer Command Prompt for VS 2022
+- Run `build.bat` in the Developer Command Prompt for VS 2022 (careful to use the 64bit version of `CL.EXE`)
 - Open `test-editor.sln` and press F5
 
 ## Notes
