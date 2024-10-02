@@ -39,9 +39,6 @@ namespace test_editor
         [return: MarshalAs(UnmanagedType.Bool)]
         public static partial bool parse_string(IntPtr ctx, [MarshalAs(UnmanagedType.LPUTF8Str)] string str, uint str_length, TSInputEncoding encoding);
 
-        [LibraryImport("tslib.dll")]
-        public static partial void print_syntax_tree(IntPtr ctx);
-
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         [return: MarshalAs(UnmanagedType.LPUTF8Str)]
         public delegate string? edit_string_callback(IntPtr payload, uint byte_index, TSPoint position, ref uint bytes_read);
@@ -70,6 +67,7 @@ namespace test_editor
         [return: MarshalAs(UnmanagedType.Bool)]
         public static partial bool get_highlights(IntPtr ctx, uint byte_offset, uint byte_length, highlights_callback callback);
 
+        // The returned string should be free'ed in C, so this leaks memory ...
         [LibraryImport("tslib.dll")]
         [return: MarshalAs(UnmanagedType.LPUTF8Str)]
         public static partial string syntax_tree(IntPtr ctx);

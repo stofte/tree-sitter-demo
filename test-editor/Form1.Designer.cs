@@ -30,16 +30,16 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             statusStrip1 = new StatusStrip();
-            toolStripDropDownButton3 = new ToolStripDropDownButton();
-            toolStripDropDownButton2 = new ToolStripDropDownButton();
-            toolStripDropDownButton1 = new ToolStripDropDownButton();
+            openFileBtn = new ToolStripDropDownButton();
+            syntaxBtn = new ToolStripDropDownButton();
+            themeInfoBtn = new ToolStripDropDownButton();
+            languageBtn = new ToolStripDropDownButton();
             toolStripMenuItem1 = new ToolStripMenuItem();
             cursorInfo = new ToolStripStatusLabel();
             splitContainer1 = new SplitContainer();
-            richTextBox1 = new RichTextBox();
+            textBox = new RichTextBox();
             label1 = new Label();
             textBox1 = new TextBox();
-            toolStripDropDownButton4 = new ToolStripDropDownButton();
             statusStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
@@ -49,54 +49,63 @@
             // 
             // statusStrip1
             // 
-            statusStrip1.Items.AddRange(new ToolStripItem[] { toolStripDropDownButton3, toolStripDropDownButton2, toolStripDropDownButton4, toolStripDropDownButton1, cursorInfo });
+            statusStrip1.Items.AddRange(new ToolStripItem[] { openFileBtn, syntaxBtn, themeInfoBtn, languageBtn, cursorInfo });
             statusStrip1.Location = new Point(0, 428);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new Size(984, 22);
             statusStrip1.TabIndex = 1;
             statusStrip1.Text = "statusStrip1";
             // 
-            // toolStripDropDownButton3
+            // openFileBtn
             // 
-            toolStripDropDownButton3.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            toolStripDropDownButton3.Image = (Image)resources.GetObject("toolStripDropDownButton3.Image");
-            toolStripDropDownButton3.ImageTransparentColor = Color.Magenta;
-            toolStripDropDownButton3.Name = "toolStripDropDownButton3";
-            toolStripDropDownButton3.ShowDropDownArrow = false;
-            toolStripDropDownButton3.Size = new Size(61, 20);
-            toolStripDropDownButton3.Text = "Open File";
-            toolStripDropDownButton3.Click += toolStripDropDownButton3_Click;
+            openFileBtn.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            openFileBtn.Image = (Image)resources.GetObject("openFileBtn.Image");
+            openFileBtn.ImageTransparentColor = Color.Magenta;
+            openFileBtn.Name = "openFileBtn";
+            openFileBtn.ShowDropDownArrow = false;
+            openFileBtn.Size = new Size(61, 20);
+            openFileBtn.Text = "Open File";
             // 
-            // toolStripDropDownButton2
+            // syntaxBtn
             // 
-            toolStripDropDownButton2.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            toolStripDropDownButton2.Image = (Image)resources.GetObject("toolStripDropDownButton2.Image");
-            toolStripDropDownButton2.ImageTransparentColor = Color.Magenta;
-            toolStripDropDownButton2.Name = "toolStripDropDownButton2";
-            toolStripDropDownButton2.ShowDropDownArrow = false;
-            toolStripDropDownButton2.Size = new Size(67, 20);
-            toolStripDropDownButton2.Text = "SyntaxTree";
+            syntaxBtn.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            syntaxBtn.Image = (Image)resources.GetObject("syntaxBtn.Image");
+            syntaxBtn.ImageTransparentColor = Color.Magenta;
+            syntaxBtn.Name = "syntaxBtn";
+            syntaxBtn.ShowDropDownArrow = false;
+            syntaxBtn.Size = new Size(67, 20);
+            syntaxBtn.Text = "SyntaxTree";
             // 
-            // toolStripDropDownButton1
+            // themeInfoBtn
             // 
-            toolStripDropDownButton1.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            toolStripDropDownButton1.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem1 });
-            toolStripDropDownButton1.ImageTransparentColor = Color.Magenta;
-            toolStripDropDownButton1.Name = "toolStripDropDownButton1";
-            toolStripDropDownButton1.ShowDropDownArrow = false;
-            toolStripDropDownButton1.Size = new Size(63, 20);
-            toolStripDropDownButton1.Text = "Language";
+            themeInfoBtn.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            themeInfoBtn.Image = (Image)resources.GetObject("themeInfoBtn.Image");
+            themeInfoBtn.ImageTransparentColor = Color.Magenta;
+            themeInfoBtn.Name = "themeInfoBtn";
+            themeInfoBtn.ShowDropDownArrow = false;
+            themeInfoBtn.Size = new Size(68, 20);
+            themeInfoBtn.Text = "ThemeInfo";
+            // 
+            // languageBtn
+            // 
+            languageBtn.DisplayStyle = ToolStripItemDisplayStyle.Text;
+            languageBtn.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem1 });
+            languageBtn.ImageTransparentColor = Color.Magenta;
+            languageBtn.Name = "languageBtn";
+            languageBtn.ShowDropDownArrow = false;
+            languageBtn.Size = new Size(63, 20);
+            languageBtn.Text = "Language";
             // 
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(136, 22);
+            toolStripMenuItem1.Size = new Size(180, 22);
             toolStripMenuItem1.Text = "JAVASCRIPT";
             // 
             // cursorInfo
             // 
             cursorInfo.Name = "cursorInfo";
-            cursorInfo.Size = new Size(718, 17);
+            cursorInfo.Size = new Size(710, 17);
             cursorInfo.Spring = true;
             cursorInfo.Text = "cursorInfo";
             cursorInfo.TextAlign = ContentAlignment.MiddleRight;
@@ -109,7 +118,7 @@
             // 
             // splitContainer1.Panel1
             // 
-            splitContainer1.Panel1.Controls.Add(richTextBox1);
+            splitContainer1.Panel1.Controls.Add(textBox);
             // 
             // splitContainer1.Panel2
             // 
@@ -119,16 +128,16 @@
             splitContainer1.SplitterDistance = 495;
             splitContainer1.TabIndex = 2;
             // 
-            // richTextBox1
+            // textBox
             // 
-            richTextBox1.AcceptsTab = true;
-            richTextBox1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            richTextBox1.Font = new Font("Consolas", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            richTextBox1.Location = new Point(0, 0);
-            richTextBox1.Name = "richTextBox1";
-            richTextBox1.Size = new Size(493, 425);
-            richTextBox1.TabIndex = 0;
-            richTextBox1.Text = "";
+            textBox.AcceptsTab = true;
+            textBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            textBox.Font = new Font("Consolas", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            textBox.Location = new Point(0, 0);
+            textBox.Name = "textBox";
+            textBox.Size = new Size(493, 425);
+            textBox.TabIndex = 0;
+            textBox.Text = "";
             // 
             // label1
             // 
@@ -141,6 +150,7 @@
             // 
             // textBox1
             // 
+            textBox1.AcceptsReturn = true;
             textBox1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             textBox1.Location = new Point(0, 0);
             textBox1.MaxLength = 932767;
@@ -150,17 +160,6 @@
             textBox1.ScrollBars = ScrollBars.Both;
             textBox1.Size = new Size(485, 425);
             textBox1.TabIndex = 0;
-            // 
-            // toolStripDropDownButton4
-            // 
-            toolStripDropDownButton4.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            toolStripDropDownButton4.Image = (Image)resources.GetObject("toolStripDropDownButton4.Image");
-            toolStripDropDownButton4.ImageTransparentColor = Color.Magenta;
-            toolStripDropDownButton4.Name = "toolStripDropDownButton4";
-            toolStripDropDownButton4.ShowDropDownArrow = false;
-            toolStripDropDownButton4.Size = new Size(68, 20);
-            toolStripDropDownButton4.Text = "ThemeInfo";
-            toolStripDropDownButton4.Click += toolStripDropDownButton4_Click;
             // 
             // Form1
             // 
@@ -184,15 +183,15 @@
 
         #endregion
         private StatusStrip statusStrip1;
-        private ToolStripDropDownButton toolStripDropDownButton1;
+        private ToolStripDropDownButton languageBtn;
         private ToolStripStatusLabel cursorInfo;
         private SplitContainer splitContainer1;
         private TextBox textBox1;
         private ToolStripMenuItem toolStripMenuItem1;
-        private ToolStripDropDownButton toolStripDropDownButton2;
-        private ToolStripDropDownButton toolStripDropDownButton3;
-        private RichTextBox richTextBox1;
+        private ToolStripDropDownButton syntaxBtn;
+        private ToolStripDropDownButton openFileBtn;
+        private RichTextBox textBox;
         private Label label1;
-        private ToolStripDropDownButton toolStripDropDownButton4;
+        private ToolStripDropDownButton themeInfoBtn;
     }
 }

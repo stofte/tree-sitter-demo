@@ -25,7 +25,7 @@ namespace test_editor
         int oldEndColumn;
 
         string prevText = string.Empty;
-
+        StringBuilder logContents = new StringBuilder();
         Random random = new Random();
 
         IntPtr tsContext;
@@ -36,31 +36,16 @@ namespace test_editor
         
         OpenFileDialog openFileDialog = new OpenFileDialog();
 
-        [DllImport("user32.dll")]
-        public static extern int SendMessage(IntPtr hWnd, Int32 wMsg, bool wParam, Int32 lParam);
-        private const int WM_SETREDRAW = 11;
-
-        public static void SuspendDrawing(Control Target)
-        {
-            SendMessage(Target.Handle, WM_SETREDRAW, false, 0);
-        }
-
-        public static void ResumeDrawing(Control Target)
-        {
-            SendMessage(Target.Handle, WM_SETREDRAW, true, 0);
-            Target.Invalidate(true);
-            Target.Update();
-        }
-
         public Form1()
         {
             InitializeComponent();
-            richTextBox1.SelectionChanged += RichTextBox1_SelectionChanged;
-            richTextBox1.TextChanged += RichTextBox1_TextChanged;
-            toolStripDropDownButton1.DropDownItemClicked += ToolStripDropDownButton1_DropDownItemClicked;
-            toolStripDropDownButton2.Click += ToolStripDropDownButton2_Click;
-            text = richTextBox1.Text;
-
+            textBox.SelectionChanged += TextBoxSelectionChanged;
+            textBox.TextChanged += TextBoxTextChanged;
+            languageBtn.DropDownItemClicked += LanguageBtnClicked;
+            openFileBtn.Click += OpenFileBtnClicked;
+            syntaxBtn.Click += SyntaxBtnClicked;
+            themeInfoBtn.Click += ThemeInfoBtnClicked;
+            text = textBox.Text;
             LoadFile(null);
             UpdateStatusLabel();
         }
@@ -85,18 +70,87 @@ namespace test_editor
             return luma > 180;
         }
 
-        private void ToolStripDropDownButton2_Click(object? sender, EventArgs e)
+        private void InsertLogLine(string line, bool replaceNewlines = true)
+        {
+            if (replaceNewlines)
+            {
+                line = line.Replace("\n", "\\n").Replace("\t", "\\t");
+            }
+            var ts = DateTime.Now.ToString("HH:mm:ss.fff");
+            logContents.Insert(0, $"[{ts}] {line}{Environment.NewLine}");
+            textBox1.Text = logContents.ToString();
+        }
+
+        private void UpdateStatusLabel()
+        {
+            cursorInfo.Text = $"Line/Col: {startLine}/{startColumn} -- {endLine}/{endColumn}";
+        }
+
+        private void LoadFile(string filePath)
+        {
+            var code = string.IsNullOrWhiteSpace(filePath) ? "" : File.ReadAllText(openFileDialog.FileName);
+            if (text != textBox.Text)
+            {
+                // only if the text differs
+                openingText = true;
+            }
+            text = code;
+            textBox.Text = code;
+            tsContext = TreeSitterLib.initialize(log_to_stdout: false);
+            var status = TreeSitterLib.set_language(tsContext, tsLanguage, @"C:\Users\set\Desktop\tslib\tree-sitter-javascript\queries\highlights.scm");
+            InsertLogLine($"tslib.set_language=\"{tsLanguage}\" \u2192 {status}");
+            if (!TreeSitterLib.parse_string(tsContext, code, (uint)code.Length, TreeSitterLib.TSInputEncoding.TSInputEncodingUTF8))
+            {
+                InsertLogLine("Failed to parse_string");
+            }
+            // First time, we colorize the whole thing
+            HighlightRange(0, (uint)text.Length);
+        }
+
+        private void HighlightRange(uint from, uint count)
+        {
+            var sw = Stopwatch.StartNew();
+            colorizing = true;
+            SuspendDrawing(textBox);
+            label1.Focus();
+            textBox.Enabled = false;
+            var prevSelectionStart = textBox.SelectionStart;
+            var prevSelectionLength = textBox.SelectionLength;
+            var hlCallbacks = 0;
+            
+            TreeSitterLib.get_highlights(tsContext, from, count, (byte_start, byte_length, captureName) =>
+            {
+                if (!theme.ContainsKey(captureName))
+                {
+                    theme.Add(captureName, GetRandomColor());
+                }
+                textBox.SelectionStart = (int)byte_start;
+                textBox.SelectionLength = (int)byte_length;
+                textBox.SelectionColor = theme[captureName];
+                hlCallbacks++;
+            });
+            textBox.SelectionLength = prevSelectionLength;
+            textBox.SelectionStart = prevSelectionStart;
+            textBox.Enabled = true;
+            ResumeDrawing(textBox);
+            textBox.Focus();
+            colorizing = false;
+            var elapsed = sw.Elapsed;
+            InsertLogLine($"Paint info: callbacks={hlCallbacks}; elapsed={elapsed.TotalMilliseconds}ms");
+        }
+
+        private void SyntaxBtnClicked(object? sender, EventArgs e)
         {
             var str = TreeSitterLib.syntax_tree(tsContext);
             InsertLogLine($"SYNTAX:\n{str}", replaceNewlines: false);
         }
 
-        private void ToolStripDropDownButton1_DropDownItemClicked(object? sender, ToolStripItemClickedEventArgs e)
+        private void LanguageBtnClicked(object? sender, ToolStripItemClickedEventArgs e)
         {
 
         }
 
-        private void RichTextBox1_TextChanged(object? sender, EventArgs e)
+        private void TextBoxTextChanged(object? sender, EventArgs e)
         {
             if (openingText)
             {
@@ -104,7 +158,7 @@ namespace test_editor
                 return;
             }
 
-            var newText = richTextBox1.Text;
+            var newText = textBox.Text;
 
             // We only care if the text is changed somehow
             if (text != newText)
@@ -142,7 +196,7 @@ namespace test_editor
                         var logsnip = snip;
                         if (logsnip != null && logsnip.Length > 100)
                         {
-                            logsnip = $"{logsnip.Substring(0, 48)}...{logsnip.Substring(logsnip.Length-48)}";
+                            logsnip = $"{logsnip.Substring(0, 48)}...{logsnip.Substring(logsnip.Length - 48)}";
                         }
                         InsertLogLine($"CB: byte_index={byte_index}, bytes_read={bytes_read}, snip={logsnip}");
                         return snip;
@@ -159,7 +213,7 @@ namespace test_editor
             text = newText;
         }
 
-        private void RichTextBox1_SelectionChanged(object? sender, EventArgs e)
+        private void TextBoxSelectionChanged(object? sender, EventArgs e)
         {
             if (colorizing)
             {
@@ -167,15 +221,15 @@ namespace test_editor
             }
 
             // The ints returned seems to corrospond to bytes.
-            var newStart = richTextBox1.SelectionStart;
-            var newEnd = newStart + richTextBox1.SelectionLength;
-            var newText = richTextBox1.Text;
+            var newStart = textBox.SelectionStart;
+            var newEnd = newStart + textBox.SelectionLength;
+            var newText = textBox.Text;
 
-            var newStartLine = richTextBox1.GetLineFromCharIndex(newStart);
-            var newStartColumn = newStart - richTextBox1.GetFirstCharIndexFromLine(newStartLine);
+            var newStartLine = textBox.GetLineFromCharIndex(newStart);
+            var newStartColumn = newStart - textBox.GetFirstCharIndexFromLine(newStartLine);
 
-            var newEndLine = richTextBox1.GetLineFromCharIndex(newEnd);
-            var newEndColumn = newEnd - richTextBox1.GetFirstCharIndexFromLine(newEndLine);
+            var newEndLine = textBox.GetLineFromCharIndex(newEnd);
+            var newEndColumn = newEnd - textBox.GetFirstCharIndexFromLine(newEndLine);
 
             oldSelectionStart = selectionStart;
             oldSelectionEnd = selectionEnd;
@@ -194,29 +248,7 @@ namespace test_editor
             UpdateStatusLabel();
         }
 
-        private void UpdateStatusLabel()
-        {
-            cursorInfo.Text = $"Line/Col: {startLine}/{startColumn} -- {endLine}/{endColumn}";
-        }
-
-        private void GenerateEvent(string text, int line, int column, int startByte, int oldStartByte, int byteLength)
-        {
-
-        }
-
-        StringBuilder logContents = new StringBuilder();
-        private void InsertLogLine(string line, bool replaceNewlines = true)
-        {
-            if (replaceNewlines)
-            {
-                line = line.Replace("\n", "\\n").Replace("\t", "\\t");
-            }
-            var ts = DateTime.Now.ToString("HH:mm:ss.fff");
-            logContents.Insert(0, $"[{ts}] {line}{Environment.NewLine}");
-            textBox1.Text = logContents.ToString();
-        }
-
-        private void toolStripDropDownButton3_Click(object sender, EventArgs e)
+        private void OpenFileBtnClicked(object? sender, EventArgs e)
         {
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -224,64 +256,27 @@ namespace test_editor
                 LoadFile(openFileDialog.FileName);
             }
         }
-
-        private void LoadFile(string filePath)
+        
+        private void ThemeInfoBtnClicked(object? sender, EventArgs e)
         {
-            var code = string.IsNullOrWhiteSpace(filePath) ? "" : File.ReadAllText(openFileDialog.FileName);
-            if (text != richTextBox1.Text)
-            {
-                // only if the text differs
-                openingText = true;
-            }
-            text = code;
-            richTextBox1.Text = code;
-            tsContext = TreeSitterLib.initialize(log_to_stdout: false);
-            var status = TreeSitterLib.set_language(tsContext, tsLanguage, @"C:\Users\set\Desktop\tslib\tree-sitter-javascript\queries\highlights.scm");
-            InsertLogLine($"tslib.set_language=\"{tsLanguage}\" \u2192 {status}");
-            if (!TreeSitterLib.parse_string(tsContext, code, (uint)code.Length, TreeSitterLib.TSInputEncoding.TSInputEncodingUTF8))
-            {
-                InsertLogLine("Failed to parse_string");
-            }
-            // First time, we colorize the whole thing
-            HighlightRange(0, (uint)text.Length);
+            var s = string.Join(",\r\n", theme.OrderBy(x => x.Key).Select(x => $"\"{x.Key}\": \"#{x.Value.R:X2}{x.Value.G:X2}{x.Value.B:X2}\""));
+            InsertLogLine($"ThemeInfo\r\n{s}", replaceNewlines: false);
         }
 
-        private void toolStripDropDownButton4_Click(object sender, EventArgs e)
+        [DllImport("user32.dll")]
+        public static extern int SendMessage(IntPtr hWnd, Int32 wMsg, bool wParam, Int32 lParam);
+        private const int WM_SETREDRAW = 11;
+
+        public static void SuspendDrawing(Control Target)
         {
-            var s = string.Join("\n", theme.OrderBy(x => x.Key).Select(x => $"{x.Key}: {x.Value}"));
-            InsertLogLine($"ThemeInfo\n{s}", replaceNewlines: false);
+            SendMessage(Target.Handle, WM_SETREDRAW, false, 0);
         }
 
-        private void HighlightRange(uint from, uint count)
+        public static void ResumeDrawing(Control Target)
         {
-            var sw = Stopwatch.StartNew();
-            colorizing = true;
-            SuspendDrawing(richTextBox1);
-            label1.Focus();
-            richTextBox1.Enabled = false;
-            var prevSelectionStart = richTextBox1.SelectionStart;
-            var prevSelectionLength = richTextBox1.SelectionLength;
-            var hlCallbacks = 0;
-            
-            TreeSitterLib.get_highlights(tsContext, from, count, (byte_start, byte_length, captureName) =>
-            {
-                if (!theme.ContainsKey(captureName))
-                {
-                    theme.Add(captureName, GetRandomColor());
-                }
-                richTextBox1.SelectionStart = (int)byte_start;
-                richTextBox1.SelectionLength = (int)byte_length;
-                richTextBox1.SelectionColor = theme[captureName];
-                hlCallbacks++;
-            });
-            richTextBox1.SelectionLength = prevSelectionLength;
-            richTextBox1.SelectionStart = prevSelectionStart;
-            richTextBox1.Enabled = true;
-            ResumeDrawing(richTextBox1);
-            richTextBox1.Focus();
-            colorizing = false;
-            var elapsed = sw.Elapsed;
-            InsertLogLine($"Paint info: callbacks={hlCallbacks}; elapsed={elapsed.TotalMilliseconds}ms");
+            SendMessage(Target.Handle, WM_SETREDRAW, true, 0);
+            Target.Invalidate(true);
+            Target.Update();
         }
     }
 }
