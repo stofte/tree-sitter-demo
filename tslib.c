@@ -42,8 +42,16 @@ Context* initialize(bool log_to_stdout) {
 
 bool set_language(Context* ctx, enum Language language, char* scm_path) {
     LOG("set_language called with %d and scm_path: %s\n", language, scm_path);
+    const TSLanguage *tsln = NULL;
     switch (language) {
-        case JAVASCRIPT: ctx->language = language; break;
+        case C:
+            tsln = tree_sitter_c();
+            ctx->language = language;
+            break;
+        case JAVASCRIPT:
+            tsln = tree_sitter_javascript();
+            ctx->language = language; 
+            break;
         case NONE: return false;
     }
     LOG("set_language passed switch with lang %d\n", ctx->language);
@@ -62,7 +70,7 @@ bool set_language(Context* ctx, enum Language language, char* scm_path) {
         ctx->scm_sizes[idx] = highlights_query_len;
         LOG("SCM STRING:\n%s\n", highlights_query);
     }
-    return ts_parser_set_language(ctx->parser, ctx->tsls[idx]);
+    return ts_parser_set_language(ctx->parser, tsln);
 }
 
 bool parse_string(Context* ctx, char* string, uint32_t string_length, TSInputEncoding encoding) {

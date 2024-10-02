@@ -1,9 +1,10 @@
 #ifndef TSLIB_H
 #define TSLIB_H
 
-#include <tree_sitter\api.h>
-#include <tree_sitter\highlight.h>
-#include <tree-sitter-javascript.h>
+#include "tree_sitter\api.h"
+#include "tree_sitter\highlight.h"
+#include "tree-sitter-javascript.h"
+#include "tree-sitter-c.h"
 
 // The API is thread specific. TS has some thread issues,
 // so we expect to get called on the same thread always.
@@ -29,6 +30,7 @@ static bool tslib_log_to_stdout = true;
 enum Language {
     NONE,
     JAVASCRIPT,
+    C,
 };
 
 typedef struct Context {
