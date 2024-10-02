@@ -193,7 +193,8 @@ bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, vo
     TSNode query_node = ts_node_descendant_for_byte_range(root_node, byte_offset, byte_offset + byte_length);
     LOG("query_node: from %d to %d\n", ts_node_start_byte(query_node), ts_node_end_byte(query_node));
     TSQueryCursor *cursor = ts_query_cursor_new();
-    ts_query_cursor_exec(cursor, query, query_node);
+    ts_query_cursor_set_byte_range(cursor, byte_offset, byte_offset + byte_length);
+    ts_query_cursor_exec(cursor, query, root_node);
     
     TSQueryMatch match = {0};
     uint32_t capture_index = 0;
