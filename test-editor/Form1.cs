@@ -1,8 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace test_editor
 {
@@ -24,12 +22,18 @@ namespace test_editor
         int oldEndLine;
         int oldEndColumn;
 
+        Dictionary<TreeSitterLib.Language, string> scmPaths = new()
+        {
+            { TreeSitterLib.Language.JAVASCRIPT, @"..\..\..\..\tree-sitter-javascript\queries\highlights.scm" },
+            { TreeSitterLib.Language.C, @"..\..\..\..\tree-sitter-c\queries\highlights.scm" }
+        };
+
         string prevText = string.Empty;
         StringBuilder logContents = new StringBuilder();
         Random random = new Random();
 
         IntPtr tsContext;
-        TreeSitterLib.Language tsLanguage = TreeSitterLib.Language.JAVASCRIPT;
+        TreeSitterLib.Language tsLanguage = TreeSitterLib.Language.C;
         IDictionary<string, Color> theme = new Dictionary<string, Color>();
         bool colorizing = false;
         bool openingText = false;
@@ -86,9 +90,9 @@ namespace test_editor
             cursorInfo.Text = $"Line/Col: {startLine}/{startColumn} -- {endLine}/{endColumn}";
         }
 
-        private void LoadFile(string filePath)
+        private void LoadFile(string? filePath)
         {
-            var code = string.IsNullOrWhiteSpace(filePath) ? "" : File.ReadAllText(openFileDialog.FileName);
+            var code = string.IsNullOrWhiteSpace(filePath) ? textBox.Text : File.ReadAllText(openFileDialog.FileName);
             if (text != textBox.Text)
             {
                 // only if the text differs
@@ -97,7 +101,7 @@ namespace test_editor
             text = code;
             textBox.Text = code;
             tsContext = TreeSitterLib.initialize(log_to_stdout: false);
-            var status = TreeSitterLib.set_language(tsContext, tsLanguage, @"C:\Users\set\Desktop\tslib\tree-sitter-javascript\queries\highlights.scm");
+            var status = TreeSitterLib.set_language(tsContext, tsLanguage, scmPaths[tsLanguage]);
             InsertLogLine($"tslib.set_language=\"{tsLanguage}\" \u2192 {status}");
             if (!TreeSitterLib.parse_string(tsContext, code, (uint)code.Length, TreeSitterLib.TSInputEncoding.TSInputEncodingUTF8))
             {
@@ -147,7 +151,9 @@ namespace test_editor
 
         private void LanguageBtnClicked(object? sender, ToolStripItemClickedEventArgs e)
         {
-
+            var ln = Enum.Parse<TreeSitterLib.Language>(e.ClickedItem.Text);
+            tsLanguage = ln;
+            LoadFile(null);
         }
 
         private void TextBoxTextChanged(object? sender, EventArgs e)

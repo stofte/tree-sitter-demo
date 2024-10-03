@@ -35,11 +35,11 @@ enum Language {
 
 typedef struct Context {
     enum Language language;
-    const TSLanguage* tsls[1];
+    const TSLanguage* tsls[2];
     uint32_t tsls_length;
-    const char* scm[1];
+    const char* scm[2];
     uint32_t scm_length; // number of entries in scm array
-    uint32_t scm_sizes[1]; // the lengths of each pointer in scm array
+    uint32_t scm_sizes[2]; // the lengths of each pointer in scm array
     TSParser* parser;
     TSTree* tree;
 } Context;

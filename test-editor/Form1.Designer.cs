@@ -35,6 +35,7 @@
             themeInfoBtn = new ToolStripDropDownButton();
             languageBtn = new ToolStripDropDownButton();
             toolStripMenuItem1 = new ToolStripMenuItem();
+            toolStripMenuItem2 = new ToolStripMenuItem();
             cursorInfo = new ToolStripStatusLabel();
             splitContainer1 = new SplitContainer();
             textBox = new RichTextBox();
@@ -49,6 +50,7 @@
             // 
             // statusStrip1
             // 
+            statusStrip1.ImageScalingSize = new Size(24, 24);
             statusStrip1.Items.AddRange(new ToolStripItem[] { openFileBtn, syntaxBtn, themeInfoBtn, languageBtn, cursorInfo });
             statusStrip1.Location = new Point(0, 428);
             statusStrip1.Name = "statusStrip1";
@@ -89,7 +91,7 @@
             // languageBtn
             // 
             languageBtn.DisplayStyle = ToolStripItemDisplayStyle.Text;
-            languageBtn.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem1 });
+            languageBtn.DropDownItems.AddRange(new ToolStripItem[] { toolStripMenuItem1, toolStripMenuItem2 });
             languageBtn.ImageTransparentColor = Color.Magenta;
             languageBtn.Name = "languageBtn";
             languageBtn.ShowDropDownArrow = false;
@@ -99,8 +101,14 @@
             // toolStripMenuItem1
             // 
             toolStripMenuItem1.Name = "toolStripMenuItem1";
-            toolStripMenuItem1.Size = new Size(180, 22);
+            toolStripMenuItem1.Size = new Size(136, 22);
             toolStripMenuItem1.Text = "JAVASCRIPT";
+            // 
+            // toolStripMenuItem2
+            // 
+            toolStripMenuItem2.Name = "toolStripMenuItem2";
+            toolStripMenuItem2.Size = new Size(136, 22);
+            toolStripMenuItem2.Text = "C";
             // 
             // cursorInfo
             // 
@@ -125,7 +133,7 @@
             splitContainer1.Panel2.Controls.Add(label1);
             splitContainer1.Panel2.Controls.Add(textBox1);
             splitContainer1.Size = new Size(984, 425);
-            splitContainer1.SplitterDistance = 495;
+            splitContainer1.SplitterDistance = 494;
             splitContainer1.TabIndex = 2;
             // 
             // textBox
@@ -135,7 +143,7 @@
             textBox.Font = new Font("Consolas", 11.25F, FontStyle.Regular, GraphicsUnit.Point, 0);
             textBox.Location = new Point(0, 0);
             textBox.Name = "textBox";
-            textBox.Size = new Size(493, 425);
+            textBox.Size = new Size(491, 425);
             textBox.TabIndex = 0;
             textBox.Text = "";
             // 
@@ -193,5 +201,6 @@
         private RichTextBox textBox;
         private Label label1;
         private ToolStripDropDownButton themeInfoBtn;
+        private ToolStripMenuItem toolStripMenuItem2;
     }
 }

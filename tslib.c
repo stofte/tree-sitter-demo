@@ -20,10 +20,12 @@ Context* initialize(bool log_to_stdout) {
 
     Context* ctx = malloc(sizeof(Context));
     ctx->language = NONE;
-    ctx->tsls[0] = tree_sitter_javascript();
-    ctx->tsls_length = 1;
+    ctx->tsls[0] = NULL;
+    ctx->tsls[1] = NULL;
+    ctx->tsls_length = 2;
     ctx->scm[0] = NULL;
-    ctx->scm_length = 1;
+    ctx->scm[1] = NULL;
+    ctx->scm_length = 2;
     ctx->scm_sizes[0] = 0;
     ctx->parser = ts_parser_new();
     ctx->tree = NULL;
@@ -42,23 +44,20 @@ Context* initialize(bool log_to_stdout) {
 
 bool set_language(Context* ctx, enum Language language, char* scm_path) {
     LOG("set_language called with %d and scm_path: %s\n", language, scm_path);
-    const TSLanguage *tsln = NULL;
-    switch (language) {
-        case C:
-            tsln = tree_sitter_c();
-            ctx->language = language;
-            break;
-        case JAVASCRIPT:
-            tsln = tree_sitter_javascript();
-            ctx->language = language; 
-            break;
-        case NONE: return false;
-    }
-    LOG("set_language passed switch with lang %d\n", ctx->language);
     // Unknown is 0, so everything is shifted once back
+    ctx->language = language;
     int idx = ctx->language - 1;
-    // Check if we have that language's SCM loaded
+    if (ctx->tsls[idx] == NULL) {
+        switch (language) {
+            case NONE: return false;
+            case JAVASCRIPT: ctx->tsls[idx] = tree_sitter_javascript(); break;
+            case C: ctx->tsls[idx] = tree_sitter_c(); break;
+        }
+    }
 
+    LOG("set_language passed switch with idx %d\n", idx);
+
+    // Check if we have that language's SCM loaded
     if (ctx->scm[idx] == NULL) {
         char* highlights_query = malloc(sizeof(char) * MAX_SCM_BUFFER_SIZE + 1);
         uint32_t highlights_query_len = 0;
@@ -70,7 +69,8 @@ bool set_language(Context* ctx, enum Language language, char* scm_path) {
         ctx->scm_sizes[idx] = highlights_query_len;
         LOG("SCM STRING:\n%s\n", highlights_query);
     }
-    return ts_parser_set_language(ctx->parser, tsln);
+
+    return ts_parser_set_language(ctx->parser, ctx->tsls[idx]);
 }
 
 bool parse_string(Context* ctx, char* string, uint32_t string_length, TSInputEncoding encoding) {
@@ -166,6 +166,9 @@ bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, vo
         int end = ts_node_end_byte(node);
         hl_callback(start, end - start, capture_name);
     }
+
+    ts_query_cursor_delete(cursor);
+    ts_query_delete(query);
 
     return true;
 }

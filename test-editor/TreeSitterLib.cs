@@ -13,6 +13,7 @@ namespace test_editor
         {
             NONE,
             JAVASCRIPT,
+            C,
         }
 
         [StructLayout(LayoutKind.Sequential)]
