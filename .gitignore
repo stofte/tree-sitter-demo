@@ -4,3 +4,4 @@ obj
 .vs
 *.csproj.user
 test-editor/tslib.*
+.dart_tool

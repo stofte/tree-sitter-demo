@@ -1,0 +1,6 @@
+name: tslib
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+dependencies:
+  ffi: 2.1.2
+  path: 1.9.0
