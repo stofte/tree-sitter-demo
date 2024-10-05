@@ -30,29 +30,6 @@ final class TSPoint extends ffi.Struct {
   external final int column;
 }
 
-final class SyntaxNode extends ffi.Struct {
-  external final TSPoint start;
-  external final TSPoint end;
-  @ffi.Bool()
-  external final bool named;
-  external final ffi.Pointer<Utf8> nodetype;
-}
-
-class SyntaxNode2 {
-  late int startRow;
-  late int startColumn;
-  late int endRow;
-  late int endColumn;
-  late bool named;
-  late String nodeType;
-}
-
-final class NodeList extends ffi.Struct {
-  external final ffi.Pointer<SyntaxNode> list;
-  @ffi.Uint32()
-  external final int length;
-}
-
 // 'initialize'
 typedef InitializeLib = ffi.Pointer Function(ffi.Bool);
 typedef InitializeDart = ffi.Pointer Function(bool);
@@ -151,10 +128,8 @@ class TreeSitterLib {
 
   bool parseString(String source) {
     var sourceCodePointer = source.toNativeUtf8();
-    var res = _parseStringUtf8(
+    return _parseStringUtf8(
         ctx, sourceCodePointer, sourceCodePointer.length, encodingEnum);
-    print("parseString: $res");
-    return res;
   }
 
   bool editString(

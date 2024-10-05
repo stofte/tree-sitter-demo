@@ -14,8 +14,8 @@ This has been tested on Windows 11, using VS2022.
 - Initialize the git submodules (`git submodule init` and `git submodule update`)
 - Run `build.bat` in the Developer Command Prompt for VS 2022 (careful to use the 64bit version of `CL.EXE`)
 - Open `test-editor.sln` and press F5
+- Dart ffi example can be running `dart run main.dart` in the `dart` folder
 
 ## Notes
 
-- This library is intended to be used in Flutter/Dart.
 - Editor performance is quite poor, since it "just" builds on the RichTextBox control.
