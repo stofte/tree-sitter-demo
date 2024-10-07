@@ -46,7 +46,7 @@ void main() {
     printf("query matches (for whole string):\n\n");
     get_highlights(ctx, 8, 4, hl_callback);
     printf("query matches (for whole buffer):\n\n");
-    get_highlights(ctx, 4, 2, hl_callback);
+    get_highlights(ctx, 0, 13, hl_callback);
 }
 
 char* global_source = "var x = \"42\";";
