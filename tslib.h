@@ -57,7 +57,7 @@ typedef struct NodeList {
 } NodeList;
 
 __declspec(dllexport) Context* initialize(bool log_to_stdout);
-__declspec(dllexport) bool set_language(Context* ctx, enum Language language, char* scm_path);
+__declspec(dllexport) bool set_language(Context* ctx, enum Language language, char* scm, uint32_t scm_length);
 __declspec(dllexport) bool parse_string(Context* ctx, char* string, uint32_t string_length, TSInputEncoding encoding);
 __declspec(dllexport) bool edit_string(
     Context* ctx,

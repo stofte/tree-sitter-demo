@@ -42,8 +42,8 @@ Context* initialize(bool log_to_stdout) {
     return ctx;
 }
 
-bool set_language(Context* ctx, enum Language language, char* scm_path) {
-    LOG("set_language called with %d and scm_path: %s\n", language, scm_path);
+bool set_language(Context* ctx, enum Language language, char* scm, uint32_t scm_length) {
+    LOG("set_language called with %d and scm: %s\n", language, scm);
     // Unknown is 0, so everything is shifted once back
     ctx->language = language;
     int idx = ctx->language - 1;
@@ -54,20 +54,15 @@ bool set_language(Context* ctx, enum Language language, char* scm_path) {
             case C: ctx->tsls[idx] = tree_sitter_c(); break;
         }
     }
-
     LOG("set_language passed switch with idx %d\n", idx);
 
-    // Check if we have that language's SCM loaded
+    // Check if we have that language's SCM loaded, otherwise copy the scm code to our own buffer
     if (ctx->scm[idx] == NULL) {
-        char* highlights_query = malloc(sizeof(char) * MAX_SCM_BUFFER_SIZE + 1);
-        uint32_t highlights_query_len = 0;
-        if (!read_file(scm_path, highlights_query, &highlights_query_len)) {
-            LOG("Failed read_file\n");
-            return false;
-        }
-        ctx->scm[idx] = highlights_query;
-        ctx->scm_sizes[idx] = highlights_query_len;
-        LOG("SCM STRING:\n%s\n", highlights_query);
+        size_t scm_size_t = sizeof(char) * scm_length + 1;
+        char* scm_copy = malloc(scm_size_t);
+        errno_t err = strcpy_s(scm_copy, scm_size_t, scm);
+        ctx->scm[idx] = scm_copy;
+        ctx->scm_sizes[idx] = scm_length;
     }
 
     return ts_parser_set_language(ctx->parser, ctx->tsls[idx]);
@@ -169,56 +164,6 @@ bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, vo
 
     ts_query_cursor_delete(cursor);
     ts_query_delete(query);
-
-    return true;
-}
-
-void ErrorExit(LPCTSTR lpszFunction) 
-{ 
-    // Retrieve the system error message for the last-error code
-
-    LPVOID lpMsgBuf;
-    LPVOID lpDisplayBuf;
-    DWORD dw = GetLastError(); 
-
-    FormatMessage(
-        FORMAT_MESSAGE_ALLOCATE_BUFFER | 
-        FORMAT_MESSAGE_FROM_SYSTEM |
-        FORMAT_MESSAGE_IGNORE_INSERTS,
-        NULL,
-        dw,
-        MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-        (LPTSTR) &lpMsgBuf,
-        0, NULL );
-
-    // Display the error message and exit the process
-
-    lpDisplayBuf = (LPVOID)LocalAlloc(LMEM_ZEROINIT, 
-        (lstrlen((LPCTSTR)lpMsgBuf) + lstrlen((LPCTSTR)lpszFunction) + 40) * sizeof(TCHAR)); 
-    StringCchPrintf((LPTSTR)lpDisplayBuf, 
-        LocalSize(lpDisplayBuf) / sizeof(TCHAR),
-        TEXT("%s failed with error %d: %s"), 
-        lpszFunction, dw, lpMsgBuf); 
-    printf("%s", (LPCTSTR)lpDisplayBuf);
-    // MessageBox(NULL, (LPCTSTR)lpDisplayBuf, TEXT("Error"), MB_OK); 
-
-    LocalFree(lpMsgBuf);
-    LocalFree(lpDisplayBuf);
-    ExitProcess(dw); 
-}
-
-bool read_file(const char* path, char* out, uint32_t* out_len) {
-    char ReadBuffer[MAX_SCM_BUFFER_SIZE] = {0};
-    DWORD bytes_read = 0;
-    HANDLE hFile = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-    if (hFile == INVALID_HANDLE_VALUE) { 
-        return false;
-    }
-    if (!ReadFile(hFile, out, MAX_SCM_BUFFER_SIZE - 1, &bytes_read, NULL)){
-        ErrorExit(TEXT("ReadFile"));
-        return false;
-    }
-    *out_len = bytes_read;
 
     return true;
 }
