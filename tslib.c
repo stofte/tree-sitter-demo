@@ -187,8 +187,6 @@ bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, vo
     }
 
     TSNode root_node = ts_tree_root_node(ctx->tree);
-    TSNode query_node = ts_node_descendant_for_byte_range(root_node, byte_offset, byte_offset + byte_length);
-    LOG("query_node: from %d to %d\n", ts_node_start_byte(query_node), ts_node_end_byte(query_node));
     TSQueryCursor *cursor = ctx->cursor;
     ts_query_cursor_set_byte_range(cursor, byte_offset, byte_offset + byte_length);
     ts_query_cursor_exec(cursor, query, root_node);

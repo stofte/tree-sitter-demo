@@ -42,8 +42,9 @@ typedef InitializeLib = ffi.Pointer Function(ffi.Bool);
 typedef InitializeDart = ffi.Pointer Function(bool);
 // 'set_language'
 typedef SetLanguageLib = ffi.Bool Function(
-    ffi.Pointer, ffi.Uint32, ffi.Pointer<Utf8>);
-typedef SetLanguageDart = bool Function(ffi.Pointer, int, ffi.Pointer<Utf8>);
+    ffi.Pointer, ffi.Uint32, ffi.Pointer<Utf8>, ffi.Uint32);
+typedef SetLanguageDart = bool Function(
+    ffi.Pointer, int, ffi.Pointer<Utf8>, int);
 // 'parse_string'
 typedef ParseStringUtf8Lib = ffi.Bool Function(
     ffi.Pointer, ffi.Pointer<Utf8>, ffi.Uint32, ffi.Uint8);
@@ -143,8 +144,8 @@ class TreeSitterLib {
     }
   }
 
-  void setLanguage(TreeSitterLanguage language, String scmPath) {
-    if (!_setLanguage(ctx, language.value, scmPath.toNativeUtf8())) {
+  void setLanguage(TreeSitterLanguage language, String scm) {
+    if (!_setLanguage(ctx, language.value, scm.toNativeUtf8(), scm.length)) {
       throw Exception('Failed to set tree-sitter parser languager: $language');
     }
   }

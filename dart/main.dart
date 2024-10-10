@@ -43,11 +43,12 @@ void getHighlights2(int start, int length, Pointer<Utf8> captureName) {
 
 void main() async {
   var tslib = new TreeSitterLib('../out/tslib.dll', TreeSitterEncoding.Utf8);
-  tslib.testingFfi();
-  return;
+  // tslib.testingFfi();
+  // return;
   tslib.initialize(true);
-  tslib.setLanguage(TreeSitterLanguage.javascript,
-      '../tree-sitter-javascript/queries/highlights.scm');
+  var jsScm = await File('../tree-sitter-javascript/queries/highlights.scm')
+      .readAsString();
+  tslib.setLanguage(TreeSitterLanguage.javascript, jsScm);
   tslib.parseString(sourceCode);
   var editCb =
       NativeCallable<EditStringUtf8Callback>.isolateLocal(editCallback);
@@ -59,8 +60,7 @@ void main() async {
 
   // testing perf ...
   tslib.initialize(false);
-  tslib.setLanguage(TreeSitterLanguage.javascript,
-      '../tree-sitter-javascript/queries/highlights.scm');
+  tslib.setLanguage(TreeSitterLanguage.javascript, jsScm);
   var largeSrcLines =
       await File('../tree-sitter-javascript/grammar.js').readAsLines();
   tslib.parseString(largeSrcLines.join('\n'));
