@@ -37,6 +37,9 @@ Context* initialize(bool log_to_stdout) {
     ctx->tsls[0] = NULL;
     ctx->tsls[1] = NULL;
     ctx->tsls_length = 2;
+    ctx->query[0] = NULL;
+    ctx->query[1] = NULL;
+    ctx->query_len = 2;
     ctx->scm[0] = NULL;
     ctx->scm[1] = NULL;
     ctx->scm_length = 2;
@@ -61,34 +64,52 @@ bool set_language(Context* ctx, enum Language language, char* scm, uint32_t scm_
     // Unknown is 0, so everything is shifted once back
     ctx->language = language;
     int idx = ctx->language - 1;
+    TSQueryError query_error = {0};
+    uint32_t query_error_offset = 0;
     if (ctx->tsls[idx] == NULL) {
         switch (language) {
             case NONE: return false;
-            case JAVASCRIPT: ctx->tsls[idx] = tree_sitter_javascript(); break;
-            case C: ctx->tsls[idx] = tree_sitter_c(); break;
+            case JAVASCRIPT: 
+                ctx->tsls[idx] = tree_sitter_javascript();
+                ctx->query[idx] = ts_query_new(ctx->tsls[idx], copy_string(scm, scm_length), scm_length, &query_error_offset, &query_error);
+                break;
+            case C: 
+                ctx->tsls[idx] = tree_sitter_c();
+                ctx->query[idx] = ts_query_new(ctx->tsls[idx], copy_string(scm, scm_length), scm_length, &query_error_offset, &query_error);
+                break;
         }
     }
     LOG("set_language passed switch with idx %d\n", idx);
 
     // Check if we have that language's SCM loaded, otherwise copy the scm code to our own buffer
-    if (ctx->scm[idx] == NULL) {
-        LOG("Trying to init scm properties on ctx\n");
-        size_t scm_size_t = sizeof(char) * scm_length + 1;
-        char* scm_copy = malloc(scm_size_t);
-        LOG("Trying to copy scm string: %d\n", scm_length);
-        // LOG("Orig SCM: %sXXX\n", scm);
-        LOG("SCM len: %zd -> %d\n", strlen(scm), scm_length);
-        // dont understand ...
-        for(int i = 0; i < scm_length; i++) {
-            scm_copy[i] = scm[i];
-        }
-        // errno_t err = strcpy_s(scm_copy, scm_size_t, scm);
-        ctx->scm[idx] = scm_copy;
-        ctx->scm_sizes[idx] = scm_length;
-        // LOG("SCM COPY: %s\n", scm_copy);
-    }
+    // if (ctx->scm[idx] == NULL) {
+    //     LOG("Trying to init scm properties on ctx\n");
+    //     size_t scm_size_t = sizeof(char) * scm_length + 1;
+    //     char* scm_copy = malloc(scm_size_t);
+    //     LOG("Trying to copy scm string: %d\n", scm_length);
+    //     // LOG("Orig SCM: %sXXX\n", scm);
+    //     LOG("SCM len: %zd -> %d\n", strlen(scm), scm_length);
+    //     // dont understand ...
+    //     for(int i = 0; i < scm_length; i++) {
+    //         scm_copy[i] = scm[i];
+    //     }
+    //     // errno_t err = strcpy_s(scm_copy, scm_size_t, scm);
+    //     ctx->scm[idx] = scm_copy;
+    //     ctx->scm_sizes[idx] = scm_length;
+    //     // LOG("SCM COPY: %s\n", scm_copy);
+    // }
 
     return ts_parser_set_language(ctx->parser, ctx->tsls[idx]);
+}
+
+const char* copy_string(char* scm, uint32_t scm_length) {
+    size_t scm_size_t = sizeof(char) * scm_length + 1;
+    char* scm_copy = malloc(scm_size_t);
+    for(int i = 0; i < scm_length; i++) {
+        scm_copy[i] = scm[i];
+    }
+    scm_copy[scm_length] = '\0';
+    return scm_copy;
 }
 
 bool parse_string(Context* ctx, char* string, uint32_t string_length, TSInputEncoding encoding) {
@@ -158,11 +179,9 @@ bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, vo
     int idx = ctx->language - 1;
 
     // https://github.com/tree-sitter/tree-sitter/discussions/3423
-    TSQueryError query_error = {0};
-    uint32_t query_error_offset = 0;
-    TSQuery *query = ts_query_new(ctx->tsls[idx], ctx->scm[idx], ctx->scm_sizes[idx], &query_error_offset, &query_error);
+    const TSQuery* query = ctx->query[idx];
     if (query == NULL) {
-        LOG("ts_query_new failed: %d, %d", query_error, query_error_offset);
+        LOG("No query found!\n");
         return false;
     }
 
@@ -187,7 +206,6 @@ bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, vo
     }
 
     ts_query_cursor_delete(cursor);
-    ts_query_delete(query);
 
     return true;
 }

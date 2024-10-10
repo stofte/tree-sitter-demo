@@ -109,8 +109,8 @@ void perf_testing() {
 char* global_source = "var x = \"42\";";
 
 void hl_callback(uint32_t byte_start, uint32_t byte_length, const char* capture_name) {
-    // printf("%s:", capture_name);
-    // printf("%.*s", byte_length, global_source + byte_start);
+    printf("%s:", capture_name);
+    printf("%.*s \n", byte_length, global_source + byte_start);
     // printf(" (capture_id: %p)\n", capture_name);
 
 }

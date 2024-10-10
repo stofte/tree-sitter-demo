@@ -38,6 +38,8 @@ typedef struct Context {
     const TSLanguage* tsls[2];
     uint32_t tsls_length;
     const char* scm[2];
+    const TSQuery* query[2];
+    uint32_t query_len;
     uint32_t scm_length; // number of entries in scm array
     uint32_t scm_sizes[2]; // the lengths of each pointer in scm array
     TSParser* parser;
@@ -79,4 +81,6 @@ __declspec(dllexport) char* syntax_tree(Context* ctx);
 __declspec(dllexport) bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, void (*hl_callback)(uint32_t, uint32_t, const char*));
 __declspec(dllexport) bool get_highlights2(Context* ctx, uint32_t byte_offset, uint32_t byte_length, uint32_t* data, uint32_t data_buffer_size, uint32_t* data_len, char* str, uint32_t* str_len);
 __declspec(dllexport) void testing_ffi(uint32_t* data, uint32_t* data_len, char* str, uint32_t* str_len);
+
+const char* copy_string(char* scm, uint32_t scm_length);
 #endif
