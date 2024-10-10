@@ -34,7 +34,7 @@ namespace test_editor
 
         [LibraryImport("tslib.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        public static partial bool set_language(IntPtr ctx, Language language, [MarshalAs(UnmanagedType.LPUTF8Str)] string str);
+        public static partial bool set_language(IntPtr ctx, Language language, [MarshalAs(UnmanagedType.LPUTF8Str)] string scm, uint scm_length);
 
         [LibraryImport("tslib.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]

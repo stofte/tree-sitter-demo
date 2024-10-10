@@ -180,7 +180,7 @@ bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, vo
         uint32_t captures_index = match.captures->index;
         uint32_t capture_name_len = 0;
         const char *capture_name = ts_query_capture_name_for_id(query, captures_index, &capture_name_len);
-        LOG("capture_index %d => %p => %s\n", capture_index, capture_name, capture_name);
+        // LOG("capture_index %d => %p => %s\n", capture_index, capture_name, capture_name);
         int start = ts_node_start_byte(node);
         int end = ts_node_end_byte(node);
         hl_callback(start, end - start, capture_name);
@@ -193,40 +193,40 @@ bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, vo
 }
 
 bool get_highlights2(Context* ctx, uint32_t byte_offset, uint32_t byte_length, uint32_t* data, uint32_t data_buffer_size, uint32_t* data_len, char* str, uint32_t* str_len) {
-    int idx = ctx->language - 1;
+    // int idx = ctx->language - 1;
 
-    // https://github.com/tree-sitter/tree-sitter/discussions/3423
-    TSQueryError query_error = {0};
-    uint32_t query_error_offset = 0;
-    TSQuery *query = ts_query_new(ctx->tsls[idx], ctx->scm[idx], ctx->scm_sizes[idx], &query_error_offset, &query_error);
-    if (query == NULL) {
-        LOG("ts_query_new failed: %d, %d", query_error, query_error_offset);
-        return false;
-    }
+    // // https://github.com/tree-sitter/tree-sitter/discussions/3423
+    // TSQueryError query_error = {0};
+    // uint32_t query_error_offset = 0;
+    // TSQuery *query = ts_query_new(ctx->tsls[idx], ctx->scm[idx], ctx->scm_sizes[idx], &query_error_offset, &query_error);
+    // if (query == NULL) {
+    //     LOG("ts_query_new failed: %d, %d", query_error, query_error_offset);
+    //     return false;
+    // }
 
-    TSNode root_node = ts_tree_root_node(ctx->tree);
-    TSNode query_node = ts_node_descendant_for_byte_range(root_node, byte_offset, byte_offset + byte_length);
-    LOG("query_node: from %d to %d\n", ts_node_start_byte(query_node), ts_node_end_byte(query_node));
-    TSQueryCursor *cursor = ts_query_cursor_new();
-    ts_query_cursor_set_byte_range(cursor, byte_offset, byte_offset + byte_length);
-    ts_query_cursor_exec(cursor, query, root_node);
+    // TSNode root_node = ts_tree_root_node(ctx->tree);
+    // TSNode query_node = ts_node_descendant_for_byte_range(root_node, byte_offset, byte_offset + byte_length);
+    // LOG("query_node: from %d to %d\n", ts_node_start_byte(query_node), ts_node_end_byte(query_node));
+    // TSQueryCursor *cursor = ts_query_cursor_new();
+    // ts_query_cursor_set_byte_range(cursor, byte_offset, byte_offset + byte_length);
+    // ts_query_cursor_exec(cursor, query, root_node);
     
-    TSQueryMatch match = {0};
-    uint32_t capture_index = 0;
-    while (ts_query_cursor_next_capture(cursor, &match, &capture_index)) {
-        TSNode node = match.captures->node;
-        uint32_t captures_index = match.captures->index;
-        uint32_t capture_name_len = 0;
-        const char *capture_name = ts_query_capture_name_for_id(query, captures_index, &capture_name_len);
-        LOG("capture_index %d => %p => %s\n", capture_index, capture_name, capture_name);
-        int start = ts_node_start_byte(node);
-        int end = ts_node_end_byte(node);
-        
-        hl_callback(start, end - start, capture_name);
-    }
+    // TSQueryMatch match = {0};
+    // uint32_t capture_index = 0;
+    // while (ts_query_cursor_next_capture(cursor, &match, &capture_index)) {
+    //     TSNode node = match.captures->node;
+    //     uint32_t captures_index = match.captures->index;
+    //     uint32_t capture_name_len = 0;
+    //     const char *capture_name = ts_query_capture_name_for_id(query, captures_index, &capture_name_len);
+    //     LOG("capture_index %d => %p => %s\n", capture_index, capture_name, capture_name);
+    //     int start = ts_node_start_byte(node);
+    //     int end = ts_node_end_byte(node);
 
-    ts_query_cursor_delete(cursor);
-    ts_query_delete(query);
+    //     hl_callback(start, end - start, capture_name);
+    // }
+
+    // ts_query_cursor_delete(cursor);
+    // ts_query_delete(query);
 
     return true;
 }

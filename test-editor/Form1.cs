@@ -101,7 +101,8 @@ namespace test_editor
             text = code;
             textBox.Text = code;
             tsContext = TreeSitterLib.initialize(log_to_stdout: false);
-            var status = TreeSitterLib.set_language(tsContext, tsLanguage, scmPaths[tsLanguage]);
+            var scmContents = File.ReadAllText(scmPaths[tsLanguage]);
+            var status = TreeSitterLib.set_language(tsContext, tsLanguage, scmContents, (uint)scmContents.Length);
             InsertLogLine($"tslib.set_language=\"{tsLanguage}\" \u2192 {status}");
             if (!TreeSitterLib.parse_string(tsContext, code, (uint)code.Length, TreeSitterLib.TSInputEncoding.TSInputEncodingUTF8))
             {
