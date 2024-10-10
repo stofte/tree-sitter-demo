@@ -68,7 +68,9 @@ void main() async {
   var hl2Cb =
       NativeCallable<GetHighlightsCallback>.isolateLocal(getHighlights2);
   var stopwatch = Stopwatch();
-  for (var i = 0; i < 100; i++) {
+  var totalDur = 0;
+  var numOfPerfRuns = 10000;
+  for (var i = 0; i < numOfPerfRuns; i++) {
     var lineStart = rng.nextInt(largeSrcLines.length - 50);
     var byteCount = 0;
     var lineCount = 0;
@@ -80,12 +82,15 @@ void main() async {
     stopwatch.start();
     tslib.getHighlights(byteStart, byteCount, hl2Cb.nativeFunction);
     stopwatch.stop();
-    var elapsed = stopwatch.elapsedMilliseconds;
+    var elapsed = stopwatch.elapsedMicroseconds;
+    totalDur += elapsed;
     var c = hlitems.length;
-    print(
-        "$i\tElapsed: $elapsed ms (found $c highlights for $byteCount bytes)");
+    // print(
+    //     "$i\tElapsed: $elapsed microsecs (found $c highlights for $byteCount bytes)");
     hlitems.clear();
+
     stopwatch.reset();
   }
+  print("Average over $numOfPerfRuns runs: ${totalDur / numOfPerfRuns}");
   hl2Cb.close();
 }

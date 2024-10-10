@@ -31,12 +31,6 @@ final class TSPoint extends ffi.Struct {
   external final int column;
 }
 
-// ffi testing
-typedef TestingFFILib = ffi.Void Function(ffi.Pointer<ffi.Uint32>,
-    ffi.Pointer<ffi.Uint32>, ffi.Pointer<Uint8>, ffi.Pointer<ffi.Uint32>);
-typedef TestingFFIDart = void Function(ffi.Pointer<ffi.Uint32>,
-    ffi.Pointer<ffi.Uint32>, ffi.Pointer<Uint8>, ffi.Pointer<ffi.Uint32>);
-
 // 'initialize'
 typedef InitializeLib = ffi.Pointer Function(ffi.Bool);
 typedef InitializeDart = ffi.Pointer Function(bool);
@@ -92,18 +86,17 @@ bool loadedLibrary = false;
 class TreeSitterLib {
   static late ffi.DynamicLibrary library;
 
-  late int encodingEnum;
+  late TreeSitterEncoding encoding;
   late InitializeDart _initialize;
   late SetLanguageDart _setLanguage;
   late ParseStringUtf8Dart _parseStringUtf8;
   late EditStringUtf8Dart _editStringUtf8;
   late GetHighlightsDart _getHighlights;
-  late TestingFFIDart _testingFfi;
 
   ffi.Pointer ctx = ffi.nullptr;
 
   TreeSitterLib(String tslibPath, TreeSitterEncoding encoding) {
-    encodingEnum = encoding == TreeSitterEncoding.Utf8 ? 0 : 1;
+    this.encoding = encoding;
     if (!loadedLibrary) {
       var libraryPath = path.join(Directory.current.path, tslibPath);
       library = ffi.DynamicLibrary.open(libraryPath);
@@ -120,21 +113,6 @@ class TreeSitterLib {
         .lookupFunction<EditStringUtf8Lib, EditStringUtf8Dart>('edit_string');
     _getHighlights = library
         .lookupFunction<GetHighlightsLib, GetHighlightsDart>('get_highlights');
-    _testingFfi =
-        library.lookupFunction<TestingFFILib, TestingFFIDart>('testing_ffi');
-  }
-
-  void testingFfi() {
-    final databuffer = calloc<Uint32>(1000);
-    final datalen = calloc<Uint32>();
-    final charbuffer = calloc<Uint8>(1000);
-    final charlen = calloc<Uint32>();
-    _testingFfi(databuffer, datalen, charbuffer, charlen);
-    for (var i = 0; i < datalen.value; i++) {
-      print("FFI NUM: ${databuffer[i]}");
-    }
-    var charstr = charbuffer.cast<Utf8>().toDartString();
-    print("FFI STR: ${charstr}");
   }
 
   void initialize(bool logToStdout) {
@@ -153,7 +131,7 @@ class TreeSitterLib {
   bool parseString(String source) {
     var sourceCodePointer = source.toNativeUtf8();
     return _parseStringUtf8(
-        ctx, sourceCodePointer, sourceCodePointer.length, encodingEnum);
+        ctx, sourceCodePointer, sourceCodePointer.length, encoding.value);
   }
 
   bool editString(
@@ -179,7 +157,7 @@ class TreeSitterLib {
         newEndPointRow,
         newEndPointColumn,
         bufferCallback,
-        encodingEnum);
+        encoding.value);
   }
 
   bool getHighlights(int startByte, int byteLength,
