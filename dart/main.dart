@@ -43,6 +43,8 @@ void getHighlights2(int start, int length, Pointer<Utf8> captureName) {
 
 void main() async {
   var tslib = new TreeSitterLib('../out/tslib.dll', TreeSitterEncoding.Utf8);
+  tslib.testingFfi();
+  return;
   tslib.initialize(true);
   tslib.setLanguage(TreeSitterLanguage.javascript,
       '../tree-sitter-javascript/queries/highlights.scm');

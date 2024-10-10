@@ -1,4 +1,5 @@
 import 'dart:ffi' as ffi;
+import 'dart:ffi';
 import 'dart:io' show Directory;
 import 'package:path/path.dart' as path;
 import 'package:ffi/ffi.dart';
@@ -29,6 +30,12 @@ final class TSPoint extends ffi.Struct {
   @ffi.Uint32()
   external final int column;
 }
+
+// ffi testing
+typedef TestingFFILib = ffi.Void Function(ffi.Pointer<ffi.Uint32>,
+    ffi.Pointer<ffi.Uint32>, ffi.Pointer<Uint8>, ffi.Pointer<ffi.Uint32>);
+typedef TestingFFIDart = void Function(ffi.Pointer<ffi.Uint32>,
+    ffi.Pointer<ffi.Uint32>, ffi.Pointer<Uint8>, ffi.Pointer<ffi.Uint32>);
 
 // 'initialize'
 typedef InitializeLib = ffi.Pointer Function(ffi.Bool);
@@ -90,6 +97,7 @@ class TreeSitterLib {
   late ParseStringUtf8Dart _parseStringUtf8;
   late EditStringUtf8Dart _editStringUtf8;
   late GetHighlightsDart _getHighlights;
+  late TestingFFIDart _testingFfi;
 
   ffi.Pointer ctx = ffi.nullptr;
 
@@ -111,6 +119,21 @@ class TreeSitterLib {
         .lookupFunction<EditStringUtf8Lib, EditStringUtf8Dart>('edit_string');
     _getHighlights = library
         .lookupFunction<GetHighlightsLib, GetHighlightsDart>('get_highlights');
+    _testingFfi =
+        library.lookupFunction<TestingFFILib, TestingFFIDart>('testing_ffi');
+  }
+
+  void testingFfi() {
+    final databuffer = calloc<Uint32>(1000);
+    final datalen = calloc<Uint32>();
+    final charbuffer = calloc<Uint8>(1000);
+    final charlen = calloc<Uint32>();
+    _testingFfi(databuffer, datalen, charbuffer, charlen);
+    for (var i = 0; i < datalen.value; i++) {
+      print("FFI NUM: ${databuffer[i]}");
+    }
+    var charstr = charbuffer.cast<Utf8>().toDartString();
+    print("FFI STR: ${charstr}");
   }
 
   void initialize(bool logToStdout) {

@@ -77,7 +77,6 @@ __declspec(dllexport) bool edit_string(
 );
 __declspec(dllexport) char* syntax_tree(Context* ctx);
 __declspec(dllexport) bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, void (*hl_callback)(uint32_t, uint32_t, const char*));
-
-bool read_file(const char* path, char* out, uint32_t* out_len);
-
+__declspec(dllexport) bool get_highlights2(Context* ctx, uint32_t byte_offset, uint32_t byte_length, uint32_t* data, uint32_t data_buffer_size, uint32_t* data_len, char* str, uint32_t* str_len);
+__declspec(dllexport) void testing_ffi(uint32_t* data, uint32_t* data_len, char* str, uint32_t* str_len);
 #endif

@@ -12,6 +12,7 @@ set CLCMD=CL /nologo ^
 -I tree-sitter\lib\include ^
 -I tree-sitter-c\bindings\c\ ^
 -I tree-sitter-javascript\bindings\c\ ^
+/WX ^
 /Foout\ ^
 /MD %BUILD_FLAGS% /DTREE_SITTER_HIDE_SYMBOLS ^
 tslib.c ^
@@ -22,6 +23,7 @@ set CLCMDEXE=%CLCMD% main.c /Feout\main.exe
 set CLCMDLIB=%CLCMD% /LD /Feout\tslib.dll
 @echo on
 %CLCMDLIB%
+@ECHO OFF
 if %ErrorLevel%==0 (
     copy out\tslib.dll test-editor
     copy out\tslib.pdb test-editor
