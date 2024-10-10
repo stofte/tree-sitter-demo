@@ -40,6 +40,8 @@ typedef struct Context {
     const char* scm[2];
     const TSQuery* query[2];
     uint32_t query_len;
+    // only single instance required?
+    TSQueryCursor* cursor;
     uint32_t scm_length; // number of entries in scm array
     uint32_t scm_sizes[2]; // the lengths of each pointer in scm array
     TSParser* parser;

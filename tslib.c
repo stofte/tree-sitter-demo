@@ -45,6 +45,7 @@ Context* initialize(bool log_to_stdout) {
     ctx->scm_length = 2;
     ctx->scm_sizes[0] = 0;
     ctx->parser = ts_parser_new();
+    ctx->cursor = ts_query_cursor_new();
     ctx->tree = NULL;
 
     TSLogger logger;
@@ -188,7 +189,7 @@ bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, vo
     TSNode root_node = ts_tree_root_node(ctx->tree);
     TSNode query_node = ts_node_descendant_for_byte_range(root_node, byte_offset, byte_offset + byte_length);
     LOG("query_node: from %d to %d\n", ts_node_start_byte(query_node), ts_node_end_byte(query_node));
-    TSQueryCursor *cursor = ts_query_cursor_new();
+    TSQueryCursor *cursor = ctx->cursor;
     ts_query_cursor_set_byte_range(cursor, byte_offset, byte_offset + byte_length);
     ts_query_cursor_exec(cursor, query, root_node);
     
@@ -204,8 +205,6 @@ bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, vo
         int end = ts_node_end_byte(node);
         hl_callback(start, end - start, capture_name);
     }
-
-    ts_query_cursor_delete(cursor);
 
     return true;
 }
