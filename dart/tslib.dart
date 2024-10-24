@@ -75,7 +75,7 @@ typedef EditStringUtf8Dart = bool Function(
     ffi.Pointer<ffi.NativeFunction<EditStringUtf8Callback>>,
     int);
 typedef GetHighlightsCallback = ffi.Void Function(
-    ffi.Uint32, ffi.Uint32, ffi.Pointer<Utf8>);
+    ffi.Uint32, ffi.Uint32, ffi.Uint32, ffi.Pointer<Utf8>);
 typedef GetHighlightsLib = ffi.Bool Function(ffi.Pointer, ffi.Uint32,
     ffi.Uint32, ffi.Pointer<ffi.NativeFunction<GetHighlightsCallback>>);
 typedef GetHighlightsDart = bool Function(ffi.Pointer, int, int,

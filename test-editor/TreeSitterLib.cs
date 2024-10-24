@@ -62,7 +62,7 @@ namespace test_editor
         );
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        public delegate void highlights_callback(uint byte_index, uint byte_length, [MarshalAs(UnmanagedType.LPUTF8Str)] string capture_name);
+        public delegate void highlights_callback(uint byte_index, uint byte_length, uint capture_id, [MarshalAs(UnmanagedType.LPUTF8Str)] string capture_name);
 
         [LibraryImport("tslib.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]

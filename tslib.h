@@ -80,7 +80,7 @@ __declspec(dllexport) bool edit_string(
     TSInputEncoding encoding
 );
 __declspec(dllexport) char* syntax_tree(Context* ctx);
-__declspec(dllexport) bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, void (*hl_callback)(uint32_t, uint32_t, const char*));
+__declspec(dllexport) bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, void (*hl_callback)(uint32_t, uint32_t, uint32_t, const char*));
 
 const char* copy_string(char* scm, uint32_t scm_length);
 #endif

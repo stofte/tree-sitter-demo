@@ -5,7 +5,7 @@
 #include "tslib.h"
 
 char* getbuffer(void *payload, uint32_t byte_index, TSPoint position, uint32_t *bytes_read);
-void hl_callback(uint32_t byte_start, uint32_t byte_length, const char* capture_name);
+void hl_callback(uint32_t byte_start, uint32_t byte_length, uint32_t capture_id, const char* capture_name);
 bool read_file(const char*, char*, uint32_t*, uint32_t);
 void perf_testing();
 
@@ -108,7 +108,7 @@ void perf_testing() {
 
 char* global_source = "var x = \"42\";";
 
-void hl_callback(uint32_t byte_start, uint32_t byte_length, const char* capture_name) {
+void hl_callback(uint32_t byte_start, uint32_t byte_length, uint32_t capture_id, const char* capture_name) {
     printf("%s:", capture_name);
     printf("%.*s \n", byte_length, global_source + byte_start);
     // printf(" (capture_id: %p)\n", capture_name);

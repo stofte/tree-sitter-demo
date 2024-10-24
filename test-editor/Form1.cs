@@ -123,7 +123,7 @@ namespace test_editor
             var prevSelectionLength = textBox.SelectionLength;
             var hlCallbacks = 0;
             
-            TreeSitterLib.get_highlights(tsContext, from, count, (byte_start, byte_length, captureName) =>
+            TreeSitterLib.get_highlights(tsContext, from, count, (byte_start, byte_length, captureId, captureName) =>
             {
                 if (!theme.ContainsKey(captureName))
                 {

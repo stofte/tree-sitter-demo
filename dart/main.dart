@@ -29,16 +29,22 @@ Pointer<Utf8> editCallback(Pointer<Void> payload, int byteIndex,
   }
 }
 
-void getHighlights(int start, int length, Pointer<Utf8> captureName) {
+void getHighlights(
+    int start, int length, int captureId, Pointer<Utf8> captureName) {
   var name = captureName.toDartString();
   var src = sourceCode2.substring(start, start + length);
   print("HL: $name ($start, $length) => $src");
 }
 
 List<HLItem> hlitems = [];
+List<int> hlitemsSyntax = [];
 
-void getHighlights2(int start, int length, Pointer<Utf8> captureName) {
-  hlitems.add(new HLItem(start, length, captureName.toDartString()));
+void getHighlights2(
+    int start, int length, int captureId, Pointer<Utf8> captureName) {
+  for (var i = 0; i < length; i++) {
+    hlitemsSyntax[i + start] = captureId;
+  }
+  // hlitems.add(new HLItem(start, length, captureName.toDartString()));
 }
 
 void main() async {
@@ -63,13 +69,15 @@ void main() async {
   tslib.setLanguage(TreeSitterLanguage.javascript, jsScm);
   var largeSrcLines =
       await File('../tree-sitter-javascript/grammar.js').readAsLines();
-  tslib.parseString(largeSrcLines.join('\n'));
+  var fullText = largeSrcLines.join('\n');
+  tslib.parseString(fullText);
   var rng = Random();
   var hl2Cb =
       NativeCallable<GetHighlightsCallback>.isolateLocal(getHighlights2);
   var stopwatch = Stopwatch();
   var totalDur = 0;
   var numOfPerfRuns = 10000;
+  hlitemsSyntax = List.generate(fullText.length, (index) => 0);
   for (var i = 0; i < numOfPerfRuns; i++) {
     var lineStart = rng.nextInt(largeSrcLines.length - 50);
     var byteCount = 0;
@@ -84,11 +92,7 @@ void main() async {
     stopwatch.stop();
     var elapsed = stopwatch.elapsedMicroseconds;
     totalDur += elapsed;
-    var c = hlitems.length;
-    // print(
-    //     "$i\tElapsed: $elapsed microsecs (found $c highlights for $byteCount bytes)");
     hlitems.clear();
-
     stopwatch.reset();
   }
   print("Average over $numOfPerfRuns runs: ${totalDur / numOfPerfRuns}");

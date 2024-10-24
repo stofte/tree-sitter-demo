@@ -138,7 +138,7 @@ bool edit_string(
     return success;
 }
 
-bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, void (*hl_callback)(uint32_t, uint32_t, const char*)) {
+bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, void (*hl_callback)(uint32_t, uint32_t, uint32_t, const char*)) {
     int idx = ctx->language - 1;
 
     // https://github.com/tree-sitter/tree-sitter/discussions/3423
@@ -162,7 +162,7 @@ bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, vo
         const char *capture_name = ts_query_capture_name_for_id(query, captures_index, &capture_name_len);
         int start = ts_node_start_byte(node);
         int end = ts_node_end_byte(node);
-        hl_callback(start, end - start, capture_name);
+        hl_callback(start, end - start, captures_index, capture_name);
     }
 
     return true;
