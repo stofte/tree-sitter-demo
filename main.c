@@ -11,7 +11,7 @@ void perf_testing();
 
 void main() {
     char* source_code = "var x = 42;";
-    Context* ctx = initialize(true);
+    Context* ctx = initialize(true, true);
     char* scm_str = malloc(5000 * sizeof(char));
     uint32_t scm_length = 0;
     if (!read_file("tree-sitter-javascript/queries/highlights.scm", scm_str, &scm_length, 5000)) {
@@ -68,7 +68,7 @@ void main() {
 
 void perf_testing() {
     srand(time(NULL));
-    Context* ctx = initialize(true);
+    Context* ctx = initialize(true, true);
     char* scm_str = malloc(5000 * sizeof(char));
     uint32_t scm_length = 0;
     if (!read_file("tree-sitter-javascript/queries/highlights.scm", scm_str, &scm_length, 5000)) {

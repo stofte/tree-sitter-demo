@@ -51,7 +51,7 @@ void main() async {
   var tslib = new TreeSitterLib('../out/tslib.dll', TreeSitterEncoding.Utf8);
   // tslib.testingFfi();
   // return;
-  tslib.initialize(true);
+  tslib.initialize(true, true);
   var jsScm = await File('../tree-sitter-javascript/queries/highlights.scm')
       .readAsString();
   tslib.setLanguage(TreeSitterLanguage.javascript, jsScm);
@@ -65,7 +65,7 @@ void main() async {
   hlCb.close();
 
   // testing perf ...
-  tslib.initialize(false);
+  tslib.initialize(false, false);
   tslib.setLanguage(TreeSitterLanguage.javascript, jsScm);
   var largeSrcLines =
       await File('../tree-sitter-javascript/grammar.js').readAsLines();

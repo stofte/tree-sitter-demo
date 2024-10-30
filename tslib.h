@@ -13,9 +13,11 @@
 #define MAX_SCM_BUFFER_SIZE 10000
 
 static bool tslib_log_to_stdout = true;
+static bool tslib_enable_logging = false;
 
 // https://stackoverflow.com/a/26305665/2491
 #define LOG(fmt, ...) \
+    if (tslib_enable_logging) \
     if (!tslib_log_to_stdout) \
         do { \
             FILE* f = fopen("tslib.log", "a"); \
@@ -60,7 +62,7 @@ typedef struct NodeList {
     uint32_t length;
 } NodeList;
 
-__declspec(dllexport) Context* initialize(bool log_to_stdout);
+__declspec(dllexport) Context* initialize(bool enable_logging, bool log_to_stdout);
 __declspec(dllexport) bool set_language(Context* ctx, enum Language language, char* scm, uint32_t scm_length);
 __declspec(dllexport) bool parse_string(Context* ctx, char* string, uint32_t string_length, TSInputEncoding encoding);
 __declspec(dllexport) bool edit_string(

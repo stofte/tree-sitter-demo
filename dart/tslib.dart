@@ -32,8 +32,8 @@ final class TSPoint extends ffi.Struct {
 }
 
 // 'initialize'
-typedef InitializeLib = ffi.Pointer Function(ffi.Bool);
-typedef InitializeDart = ffi.Pointer Function(bool);
+typedef InitializeLib = ffi.Pointer Function(ffi.Bool, ffi.Bool);
+typedef InitializeDart = ffi.Pointer Function(bool, bool);
 // 'set_language'
 typedef SetLanguageLib = ffi.Bool Function(
     ffi.Pointer, ffi.Uint32, ffi.Pointer<Utf8>, ffi.Uint32);
@@ -115,8 +115,8 @@ class TreeSitterLib {
         .lookupFunction<GetHighlightsLib, GetHighlightsDart>('get_highlights');
   }
 
-  void initialize(bool logToStdout) {
-    ctx = _initialize(logToStdout);
+  void initialize(bool enableLogging, bool logToStdout) {
+    ctx = _initialize(enableLogging, logToStdout);
     if (ctx == ffi.nullptr) {
       throw Exception('Failed to initialize tree-sitter');
     }

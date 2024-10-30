@@ -4,6 +4,8 @@
 #include <strsafe.h>
 #include "tslib.h"
 
+#define HIGHLIGHTS_START_NODE_MAX_CHILD_COUNT 100
+
 void tslogger_log(void* payload, TSLogType log_type, const char *buffer) {
     if (log_type == TSLogTypeParse) {
         LOG("Parse: ");
@@ -13,8 +15,10 @@ void tslogger_log(void* payload, TSLogType log_type, const char *buffer) {
     LOG("%s\n", buffer);
 }
 
-Context* initialize(bool log_to_stdout) {
+Context* initialize(bool enable_logging, bool log_to_stdout) {
     tslib_log_to_stdout = log_to_stdout;
+    tslib_enable_logging = enable_logging;
+
     LOG("TSLIB INIT: log_to_stdout: %d \n", log_to_stdout);
 
     // TODO also set encoding here?
@@ -76,7 +80,6 @@ const char* copy_string(char* scm, uint32_t scm_length) {
 }
 
 bool parse_string(Context* ctx, char* string, uint32_t string_length, TSInputEncoding encoding) {
-    LOG("INCOMING STR: \"%s\"\nlength: %d\n", string, string_length);
     ctx->tree = ts_parser_parse_string_encoding(
         ctx->parser,
         NULL,
@@ -149,8 +152,41 @@ bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, vo
     }
 
     TSNode root_node = ts_tree_root_node(ctx->tree);
+    TSNode query_node = {0};
+
+    uint32_t byte_idx = byte_offset;
+
+    while (true) {
+        // Sometimes, we get back an error node for whatever reason. This node has start byte = 0, which
+        // obviously causes havoc further down the line. To work around this, we step backwards in the code,
+        // step by step, until we find a valid node.
+        query_node = ts_node_descendant_for_byte_range(root_node, byte_idx, byte_idx + 1);
+        // Depending on the grammar of the text, we can risk the node having a huge difference between
+        // byte_offset and ts_node_start_byte(query_node), which leads to issues with returning
+        // way too much information to the user as well. 
+        // A good heuristic is that we check the found nodes named child count, and if this is larger
+        // than some threshold, we step backwards some more.
+        if (ts_node_is_error(query_node) || ts_node_named_child_count(query_node) > HIGHLIGHTS_START_NODE_MAX_CHILD_COUNT) {
+            byte_idx--;
+        } else {
+            break;
+        }
+    }
+
+    LOG("FOO %d, %d\n", byte_offset, byte_idx);
+    if (byte_idx < byte_offset) {
+        LOG("get_highlights:shifted byte_offset: %d times\n", (byte_offset - byte_idx));
+    }
+
     TSQueryCursor *cursor = ctx->cursor;
-    ts_query_cursor_set_byte_range(cursor, byte_offset, byte_offset + byte_length);
+
+    // assume that query_offset <= byte_offset
+    uint32_t query_offset = ts_node_start_byte(query_node);
+    uint32_t query_length = (byte_offset - query_offset) + byte_length;
+
+    LOG("get_highlights:adjusted_offsets: %d => %d, %d => %d\n", byte_offset, query_offset, byte_length, query_length);
+    
+    ts_query_cursor_set_byte_range(cursor, query_offset, query_offset + query_length);
     ts_query_cursor_exec(cursor, query, root_node);
     
     TSQueryMatch match = {0};
@@ -160,9 +196,15 @@ bool get_highlights(Context* ctx, uint32_t byte_offset, uint32_t byte_length, vo
         uint32_t captures_index = match.captures->index;
         uint32_t capture_name_len = 0;
         const char *capture_name = ts_query_capture_name_for_id(query, captures_index, &capture_name_len);
-        int start = ts_node_start_byte(node);
-        int end = ts_node_end_byte(node);
-        hl_callback(start, end - start, captures_index, capture_name);
+        uint32_t start = ts_node_start_byte(node);
+        uint32_t end = ts_node_end_byte(node);
+        if (end - start < 0) {
+            LOG("get_highlights:range_check: (%d - %d) < 0\n", end, start);
+        }
+        if (end - start > 0) {
+            // todo nodes with width 0 have been observed?
+            hl_callback(start, end - start, captures_index, capture_name);
+        }
     }
 
     return true;
