@@ -6,8 +6,9 @@
 
 #define SHIFT_COUNT_SIZE 100
 
+static char* source = NULL;
+
 char* read_file(const char* filename) {
-    char *source = NULL;
     FILE *fp = fopen(filename, "r");
     if (fp != NULL) {
         /* Go to the end of the file. */
@@ -17,7 +18,7 @@ char* read_file(const char* filename) {
             if (bufsize == -1) { /* Error */ }
 
             /* Allocate our buffer to that size. */
-            source = malloc(sizeof(char) * (bufsize + 1));
+            source = malloc(sizeof(char) * (bufsize + 1000));
 
             /* Go back to the start of the file. */
             if (fseek(fp, 0L, SEEK_SET) != 0) { /* Error */ }
@@ -33,6 +34,12 @@ char* read_file(const char* filename) {
         fclose(fp);
     }
     return source;
+}
+
+char* buffer_callback(void *payload, uint32_t byte_index, TSPoint position, uint32_t *bytes_read) {
+    printf("getbuffer called => %d (point: %d/%d)\n", byte_index, position.row, position.column);
+    *bytes_read = 2500;
+    return source+byte_index;
 }
 
 void main() {
@@ -69,7 +76,7 @@ void main() {
     // Walk through the full source code in byte increments.
     // For each point, check ts_node_[named]_descendant_for_byte_range,
     // if it's an ERROR node, then walk backwards until we get something else.
-    for (i = 0; i < (sourcesize - 1000); i += 1) {
+    for (i = 0; i < 100;/*(sourcesize - 1000);*/ i += 1) {
         QueryPerformanceCounter(&StartingTime);
         
         uint32_t i_tmp = i;
@@ -135,5 +142,51 @@ void main() {
 
     printf("Avg time: %lld us\n", perf_sum / i);
     printf("Worst time: %lld us (with %d shifts, index: %d)\n", worst_perf, worst_shifts, worst_i);
+
+    // // Inserts an X in the code ...
+    // printf("Source size before insert: %zd\n", strlen(source));
+    // memmove(source + 2, source, 10);
+    source[2] = 'X';
+    // printf("Source size after insert: %zd\n", strlen(source));
+
+    // const char* foo_src = "1234567890";
+    // const char* foo_dst = "ABCDEFGHIJ";
+
+    // memmove(foo_dst + 2, foo_src, 10);
+
+    printf("Modified:\n%.*s", 200, source);
+
+    TSPoint start;
+    start.row = 0;
+    start.column = 2;
+
+    TSPoint old_end_point;
+    old_end_point.row = 0;
+    old_end_point.column = 3;
+
+    TSPoint new_end_point;
+    new_end_point.row = 0;
+    new_end_point.column = 3;
+
+    TSInputEdit edit;
+    edit.start_byte = 2;
+    edit.old_end_byte = 3;
+    edit.new_end_byte = 3;
+    edit.start_point = start;
+    edit.old_end_point = old_end_point;
+    edit.new_end_point = new_end_point;
+
+    ts_tree_edit(tree, &edit);
+
+    TSInput input;
+    input.encoding = TSInputEncodingUTF8;
+    input.read = buffer_callback;
+
+    TSTree* newtree = ts_parser_parse(parser, tree, input);
+
+    if (newtree != NULL) {
+        printf("Returned new tree!\n");
+    }
+
     free(source);
 }
