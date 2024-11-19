@@ -100,7 +100,7 @@ namespace test_editor
             }
             text = code;
             textBox.Text = code;
-            tsContext = TreeSitterLib.initialize(log_to_stdout: false);
+            tsContext = TreeSitterLib.initialize(enable_logging: false, log_to_stdout: false);
             var scmContents = File.ReadAllText(scmPaths[tsLanguage]);
             var status = TreeSitterLib.set_language(tsContext, tsLanguage, scmContents, (uint)scmContents.Length);
             InsertLogLine($"tslib.set_language=\"{tsLanguage}\" \u2192 {status}");

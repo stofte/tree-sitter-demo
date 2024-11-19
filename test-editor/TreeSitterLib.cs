@@ -30,7 +30,7 @@ namespace test_editor
         }
 
         [LibraryImport("tslib.dll")]
-        public static partial IntPtr initialize([MarshalAs(UnmanagedType.Bool)] bool log_to_stdout);
+        public static partial IntPtr initialize([MarshalAs(UnmanagedType.Bool)] bool enable_logging, [MarshalAs(UnmanagedType.Bool)] bool log_to_stdout);
 
         [LibraryImport("tslib.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
